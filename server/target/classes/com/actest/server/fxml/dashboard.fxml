@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.actest.server.controller.MainController">
+    <!-- Toàn màn hình -->
+    <VBox spacing="20.0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+          AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
+        <padding>
+            <Insets top="20" right="20" bottom="20" left="20"/>
+        </padding>
+
+        <!-- Header -->
+        <HBox spacing="10.0">
+            <Label text="Dashboard" styleClass="header-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Settings" fx:id="btnSettings"/>
+        </HBox>
+
+        <!-- Scrollable content -->
+        <ScrollPane fitToWidth="true" fitToHeight="true" VBox.vgrow="ALWAYS">
+            <VBox spacing="15">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+
+                <Label text="Welcome to the dashboard!" styleClass="welcome-label"/>
+
+                <HBox spacing="15">
+                    <Button text="Action 1" fx:id="btn1" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+                    <Button text="Action 2" fx:id="btn2" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+                    <Button text="Action 3" fx:id="btn3" VBox.vgrow="ALWAYS" HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <!-- Table example -->
+                <TableView fx:id="tableView" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn text="ID"/>
+                        <TableColumn text="Name"/>
+                        <TableColumn text="Value"/>
+                    </columns>
+                </TableView>
+            </VBox>
+        </ScrollPane>
+    </VBox>
+</AnchorPane>

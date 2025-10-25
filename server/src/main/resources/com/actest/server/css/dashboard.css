@@ -1,0 +1,17 @@
+
+.header-label {
+    -fx-font-size: 2em; /* tự scale với DPI */
+    -fx-font-weight: bold;
+}
+
+.welcome-label {
+    -fx-font-size: 1.5em;
+}
+
+.button {
+    -fx-font-size: 1em;
+}
+
+.table-view {
+    -fx-font-size: 0.9em;
+}
