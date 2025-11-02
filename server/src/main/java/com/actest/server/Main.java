@@ -16,7 +16,7 @@ public class Main extends Application {
         Scene scene = new Scene(root);
 
         // Lấy tỉ lệ DPI của màn hình
-        double scale = Screen.getPrimary().getOutputScaleX(); // hoặc getOutputScaleY()
+        double scale = Screen.getPrimary().getOutputScaleX();
         root.setScaleX(scale);
         root.setScaleY(scale);
 
