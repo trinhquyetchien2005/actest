@@ -41,14 +41,16 @@
         </javafx.scene.control.TabPane>
     </left>
     <center>
-        <VBox spacing="10" style="-fx-padding: 10;">
-            <Label fx:id="chatWithLabel" text="Select a user to chat" styleClass="header-label"/>
-            <ScrollPane fx:id="messageScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
-                <VBox fx:id="messageContainer" spacing="10" style="-fx-padding: 10;"/>
+        <VBox spacing="0">
+            <HBox styleClass="chat-header">
+                <Label fx:id="chatWithLabel" text="Select a user to chat" styleClass="header-label"/>
+            </HBox>
+            <ScrollPane fx:id="messageScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 10;">
+                <VBox fx:id="messageContainer" spacing="15" style="-fx-padding: 10;"/>
             </ScrollPane>
-            <HBox spacing="10">
-                <TextArea fx:id="messageInput" promptText="Type a message..." prefRowCount="2" HBox.hgrow="ALWAYS"/>
-                <Button text="Send" onAction="#handleSend" styleClass="button-primary" prefHeight="50"/>
+            <HBox spacing="10" styleClass="chat-input-area" alignment="CENTER_LEFT">
+                <TextArea fx:id="messageInput" promptText="Type a message..." prefRowCount="1" HBox.hgrow="ALWAYS" styleClass="chat-text-area"/>
+                <Button text="Send" onAction="#handleSend" styleClass="button-primary" prefHeight="40"/>
             </HBox>
         </VBox>
     </center>

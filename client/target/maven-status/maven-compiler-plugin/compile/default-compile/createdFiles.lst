@@ -3,6 +3,7 @@ com/actest/client/controller/DashboardController.class
 com/actest/client/network/TimeListener.class
 com/actest/client/network/Client$ClientListener.class
 com/actest/client/network/DiscoveryClient.class
+com/actest/client/controller/ExamTakingController$1.class
 com/actest/client/model/User.class
 com/actest/client/controller/ExamTakingController.class
 module-info.class

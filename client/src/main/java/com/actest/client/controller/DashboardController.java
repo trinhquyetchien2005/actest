@@ -54,6 +54,7 @@ public class DashboardController {
 
                             javafx.application.Platform.runLater(() -> {
                                 com.actest.client.controller.ExamTakingController.setPendingExam(exam);
+                                com.actest.client.controller.ExamTakingController.setPendingAnswers(answers);
                                 // Answers are managed by server in real-time mode
                                 ViewManager.getInstance().switchView("/com/actest/client/view/exam_taking.fxml",
                                         "ACTEST Client - Exam");

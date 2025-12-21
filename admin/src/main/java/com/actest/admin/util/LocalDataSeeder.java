@@ -39,7 +39,8 @@ public class LocalDataSeeder {
             if (existingExams < 10) {
                 for (int i = existingExams + 1; i <= 10; i++) {
                     pstmt.setString(1, "Local Programming Exam " + i);
-                    pstmt.setInt(2, 60); // 60 minutes
+                    int[] durations = { 30, 45, 60, 90, 120 };
+                    pstmt.setInt(2, durations[i % durations.length]); // Varied durations
                     pstmt.setString(3, "NOT_STARTED");
                     pstmt.setObject(4, null); // No creator for local exams usually
                     pstmt.addBatch();

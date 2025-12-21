@@ -2,6 +2,7 @@ module com.actest.client {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires java.desktop;
     requires com.fasterxml.jackson.databind;
 
     opens com.actest.client to javafx.fxml;

@@ -12,7 +12,7 @@ import java.util.Map;
 public class HttpClientUtil {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String BASE_URL = "http://localhost:8080/api";
+    private static final String BASE_URL = "http://192.168.20.127:8080/api";
 
     public static HttpResponse<String> post(String endpoint, Map<String, Object> data)
             throws IOException, InterruptedException {

@@ -38,9 +38,14 @@ public class ExamTakingController {
     private List<Button> gridButtons = new ArrayList<>();
 
     private static com.actest.client.model.Exam pendingExam;
+    private static Map<Integer, String> pendingAnswers;
 
     public static void setPendingExam(com.actest.client.model.Exam exam) {
         pendingExam = exam;
+    }
+
+    public static void setPendingAnswers(Map<Integer, String> answers) {
+        pendingAnswers = answers;
     }
 
     @FXML
@@ -51,12 +56,20 @@ public class ExamTakingController {
             stage.setFullScreen(true);
             stage.setFullScreenExitKeyCombination(javafx.scene.input.KeyCombination.NO_MATCH); // Disable ESC
             // stage.setAlwaysOnTop(true); // Optional, can be annoying during dev
+
+            setupFocusListener();
         });
 
         if (pendingExam != null) {
             this.currentExam = pendingExam;
             examNameLabel.setText(pendingExam.getName());
             pendingExam = null;
+
+            if (pendingAnswers != null) {
+                this.answers.putAll(pendingAnswers);
+                pendingAnswers = null;
+            }
+
             startExam(); // Start immediately if we have the exam
         }
 
@@ -82,6 +95,35 @@ public class ExamTakingController {
                         Platform.runLater(this::startExam);
                     } catch (Exception e) {
                         e.printStackTrace();
+                    }
+                } else if (message.startsWith("RESUME_EXAM:")) {
+                    // Format: RESUME_EXAM:examJson|||answersJson
+                    String payload = message.substring(12);
+                    String[] parts = payload.split("\\|\\|\\|");
+                    if (parts.length == 2) {
+                        String examJson = parts[0];
+                        String answersJson = parts[1];
+                        try {
+                            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                            currentExam = mapper.readValue(examJson, com.actest.client.model.Exam.class);
+
+                            java.util.Map<Integer, String> restoredAnswers = mapper.readValue(answersJson,
+                                    new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<Integer, String>>() {
+                                    });
+
+                            Platform.runLater(() -> {
+                                startExam();
+                                // Restore answers
+                                answers.putAll(restoredAnswers);
+                                updateGridStyles();
+                                // Refresh current question view if needed
+                                if (currentQuestion != null) {
+                                    displayQuestion(currentQuestionIndex);
+                                }
+                            });
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 } else if (message.equals("EXAM_FINISHED") || message.equals("FORCE_SUBMIT")) {
                     Platform.runLater(this::handleSubmit);
@@ -118,7 +160,7 @@ public class ExamTakingController {
         examNameLabel.setText(currentExam.getName());
 
         // Start Timer
-        timeListener = new TimeListener(timerLabel);
+        timeListener = new TimeListener(timerLabel, currentExam.getId());
         new Thread(timeListener).start();
 
         // Render Grid
@@ -197,22 +239,45 @@ public class ExamTakingController {
         if (q.getOptions() != null) {
             List<String> options = q.getOptions();
             for (String option : options) {
+                // Use ToggleButton behavior but styled as a card
+                // Or use HBox with RadioButton inside, and handle click on HBox
+
+                HBox optionCard = new HBox(10);
+                optionCard.getStyleClass().add("answer-option");
+                optionCard.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
                 RadioButton rb = new RadioButton(option);
                 rb.setToggleGroup(currentGroup);
                 rb.setUserData(option);
-                rb.setStyle("-fx-font-size: 14px;");
+                rb.setMouseTransparent(true); // Let HBox handle click
 
-                if (answers.containsKey(q.getId()) && answers.get(q.getId()).equals(option)) {
+                // Check if selected
+                boolean isSelected = answers.containsKey(q.getId()) && answers.get(q.getId()).equals(option);
+                if (isSelected) {
                     rb.setSelected(true);
+                    optionCard.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("selected"), true);
                 }
 
-                rb.setOnAction(e -> {
+                optionCard.setOnMouseClicked(e -> {
+                    rb.setSelected(true);
                     answers.put(q.getId(), option);
                     sendAnswer(q.getId(), option);
                     updateGridStyles();
+
+                    // Update visual state of all options
+                    for (javafx.scene.Node node : optionsBox.getChildren()) {
+                        if (node instanceof HBox) {
+                            node.pseudoClassStateChanged(javafx.css.PseudoClass.getPseudoClass("selected"),
+                                    node == optionCard);
+                            // Also update the radio button inside? The ToggleGroup handles the logic, but
+                            // visual sync might need help if we blocked mouse
+                            // Actually, since we set rb.setSelected(true), ToggleGroup updates other RBs.
+                        }
+                    }
                 });
 
-                optionsBox.getChildren().add(rb);
+                optionCard.getChildren().add(rb);
+                optionsBox.getChildren().add(optionCard);
             }
         }
 
@@ -259,7 +324,8 @@ public class ExamTakingController {
     private void sendAnswer(int questionId, String answer) {
         com.actest.client.network.Client client = com.actest.client.service.AuthService.getTcpClient();
         if (client != null) {
-            client.sendMessage("ANSWER:" + currentExam.getId() + ":" + questionId + ":" + answer);
+            // Send UPDATE_ANSWER:examId:questionId:answer
+            client.sendMessage("UPDATE_ANSWER:" + currentExam.getId() + ":" + questionId + ":" + answer);
         }
     }
 
@@ -302,6 +368,61 @@ public class ExamTakingController {
     }
 
     // handleExit removed
+
+    private final java.util.concurrent.ScheduledExecutorService violationExecutor = java.util.concurrent.Executors
+            .newSingleThreadScheduledExecutor();
+
+    private void setupFocusListener() {
+        javafx.stage.Stage stage = (javafx.stage.Stage) examNameLabel.getScene().getWindow();
+        stage.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            if (!newVal && currentExam != null) {
+                // Focus Lost
+                System.out.println("Focus Lost! Scheduling screen capture in 2 seconds...");
+
+                violationExecutor.schedule(() -> {
+                    // Optional: Check if still lost focus?
+                    // User request: "capture after 2 seconds".
+                    // If they switch back quickly, maybe we still want to capture what they did?
+                    // Or maybe we only capture if they are STILL away?
+                    // Usually "after 2 seconds" implies a grace period or just a delay to catch the
+                    // cheat app opening.
+                    // Let's just capture.
+
+                    System.out.println("Executing screen capture task...");
+                    String base64Image = captureScreenToBase64();
+                    if (base64Image != null) {
+                        sendViolation("FOCUS_LOST", base64Image);
+                    }
+                }, 2, java.util.concurrent.TimeUnit.SECONDS);
+            }
+        });
+    }
+
+    private String captureScreenToBase64() {
+        try {
+            java.awt.Robot robot = new java.awt.Robot();
+            java.awt.Rectangle screenRect = new java.awt.Rectangle(
+                    java.awt.Toolkit.getDefaultToolkit().getScreenSize());
+            java.awt.image.BufferedImage screenFullImage = robot.createScreenCapture(screenRect);
+
+            // Convert to Base64
+            java.io.ByteArrayOutputStream os = new java.io.ByteArrayOutputStream();
+            javax.imageio.ImageIO.write(screenFullImage, "png", os);
+            byte[] imageBytes = os.toByteArray();
+            return java.util.Base64.getEncoder().encodeToString(imageBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void sendViolation(String type, String data) {
+        com.actest.client.network.Client client = com.actest.client.service.AuthService.getTcpClient();
+        if (client != null) {
+            // VIOLATION:type:examId:data
+            client.sendMessage("VIOLATION:" + type + ":" + currentExam.getId() + ":" + data);
+        }
+    }
 
     @FXML
     private void handleMarkQuestion() {

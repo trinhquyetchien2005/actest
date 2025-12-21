@@ -21,6 +21,7 @@ com/actest/admin/repository/ExamRepository$1.class
 com/actest/admin/service/ExamService$3.class
 com/actest/admin/service/ExamService.class
 com/actest/admin/network/TimeBroadcastServer$1.class
+com/actest/admin/service/StudentProgressService.class
 com/actest/admin/network/DiscoveryClient.class
 com/actest/admin/repository/QuestionRepository$1.class
 com/actest/admin/service/ChatService.class
@@ -32,6 +33,7 @@ com/actest/admin/service/ChatService$2.class
 com/actest/admin/service/ExamService$2.class
 com/actest/admin/offline/controller/DashboardController$2.class
 module-info.class
+com/actest/admin/service/StudentProgressService$Violation.class
 com/actest/admin/util/ViewManager.class
 com/actest/admin/network/ClientHandler.class
 com/actest/admin/network/DiscoveryServer.class

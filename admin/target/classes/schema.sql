@@ -28,3 +28,20 @@ CREATE TABLE IF NOT EXISTS results (
     score REAL DEFAULT 0.0,
     exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS student_answers (
+    student_name TEXT NOT NULL,
+    exam_id INTEGER NOT NULL,
+    question_id INTEGER NOT NULL,
+    answer TEXT,
+    PRIMARY KEY (student_name, exam_id, question_id)
+);
+
+CREATE TABLE IF NOT EXISTS exam_violations (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_name TEXT NOT NULL,
+    exam_id INTEGER NOT NULL,
+    violation_type TEXT NOT NULL,
+    violation_time TEXT NOT NULL,
+    image_data TEXT
+);

@@ -45,7 +45,11 @@
                     <javafx.scene.layout.FlowPane fx:id="pendingStudentsContainer" hgap="15" vgap="15" style="-fx-padding: 10;"/>
                 </javafx.scene.control.ScrollPane>
                 
-                <Label text="Connected Students" styleClass="sub-header-label"/>
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label text="Connected Students" styleClass="sub-header-label"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <javafx.scene.control.TextField fx:id="clientSearchField" promptText="Search students..." onKeyReleased="#handleClientSearch"/>
+                </HBox>
                 <javafx.scene.control.ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
                     <javafx.scene.layout.FlowPane fx:id="connectedStudentsContainer" hgap="15" vgap="15" style="-fx-padding: 10;"/>
                 </javafx.scene.control.ScrollPane>

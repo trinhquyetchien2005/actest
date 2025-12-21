@@ -79,17 +79,51 @@ public class ChatController {
         }
     }
 
-    private HBox createFriendCell(Map<String, Object> friend) {
-        HBox cell = new HBox(10);
-        cell.setAlignment(Pos.CENTER_LEFT);
-        cell.setStyle(
-                "-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 5; -fx-border-color: #e2e8f0; -fx-border-radius: 5;");
+    private javafx.scene.layout.StackPane createAvatar(String name) {
+        javafx.scene.layout.StackPane avatar = new javafx.scene.layout.StackPane();
+        avatar.getStyleClass().add("avatar-circle");
 
-        Label nameLabel = new Label((String) friend.get("name"));
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        String initials = "";
+        if (name != null && !name.isEmpty()) {
+            String[] parts = name.split(" ");
+            if (parts.length >= 2) {
+                initials = ("" + parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+            } else {
+                initials = ("" + name.charAt(0)).toUpperCase();
+                if (name.length() > 1) {
+                    initials += name.charAt(1);
+                }
+            }
+        }
+
+        Label initialsLabel = new Label(initials);
+        avatar.getChildren().add(initialsLabel);
+
+        // Randomize color based on name hash
+        int hash = name != null ? name.hashCode() : 0;
+        String[] colors = { "#ebf8ff", "#faf5ff", "#fff5f5", "#f0fff4", "#fffff0", "#edf2f7" };
+        String[] textColors = { "#2b6cb0", "#553c9a", "#c53030", "#276749", "#744210", "#4a5568" };
+
+        int colorIndex = Math.abs(hash) % colors.length;
+        avatar.setStyle("-fx-background-color: " + colors[colorIndex] + "; -fx-background-radius: 50%;");
+        initialsLabel.setStyle("-fx-text-fill: " + textColors[colorIndex] + "; -fx-font-weight: bold;");
+
+        return avatar;
+    }
+
+    private HBox createFriendCell(Map<String, Object> friend) {
+        HBox cell = new HBox(15);
+        cell.setAlignment(Pos.CENTER_LEFT);
+        cell.getStyleClass().add("list-cell");
+
+        String name = (String) friend.get("name");
+        cell.getChildren().add(createAvatar(name));
+
+        Label nameLabel = new Label(name);
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2d3748;");
 
         Label emailLabel = new Label((String) friend.get("email"));
-        emailLabel.setStyle("-fx-text-fill: grey; -fx-font-size: 12px;");
+        emailLabel.setStyle("-fx-text-fill: #718096; -fx-font-size: 12px;");
 
         VBox info = new VBox(2, nameLabel, emailLabel);
         HBox.setHgrow(info, javafx.scene.layout.Priority.ALWAYS);
@@ -120,17 +154,20 @@ public class ChatController {
     }
 
     private HBox createRequestCell(Map<String, Object> req) {
-        HBox cell = new HBox(10);
+        HBox cell = new HBox(15);
         cell.setAlignment(Pos.CENTER_LEFT);
-        cell.setStyle(
-                "-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 5; -fx-border-color: #e2e8f0; -fx-border-radius: 5;");
+        cell.getStyleClass().add("list-cell");
 
-        Label nameLabel = new Label("From: " + req.get("senderName"));
-        nameLabel.setStyle("-fx-font-weight: bold;");
+        String senderName = (String) req.get("senderName");
+        cell.getChildren().add(createAvatar(senderName));
+
+        Label nameLabel = new Label("Request from " + senderName);
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2d3748;");
         HBox.setHgrow(nameLabel, javafx.scene.layout.Priority.ALWAYS);
 
         Button acceptBtn = new Button("Accept");
         acceptBtn.getStyleClass().add("button-primary");
+        acceptBtn.setStyle("-fx-font-size: 12px; -fx-padding: 5 15;");
         acceptBtn.setOnAction(e -> {
             try {
                 chatService.respondToRequest((int) req.get("id"), "ACCEPTED");
@@ -166,16 +203,18 @@ public class ChatController {
     }
 
     private HBox createSearchUserCell(Map<String, Object> user) {
-        HBox cell = new HBox(10);
+        HBox cell = new HBox(15);
         cell.setAlignment(Pos.CENTER_LEFT);
-        cell.setStyle(
-                "-fx-padding: 10; -fx-background-color: white; -fx-background-radius: 5; -fx-border-color: #e2e8f0; -fx-border-radius: 5;");
+        cell.getStyleClass().add("list-cell");
 
-        Label nameLabel = new Label((String) user.get("name"));
-        nameLabel.setStyle("-fx-font-weight: bold;");
+        String name = (String) user.get("name");
+        cell.getChildren().add(createAvatar(name));
+
+        Label nameLabel = new Label(name);
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #2d3748;");
 
         Label emailLabel = new Label((String) user.get("email"));
-        emailLabel.setStyle("-fx-text-fill: grey; -fx-font-size: 12px;");
+        emailLabel.setStyle("-fx-text-fill: #718096; -fx-font-size: 12px;");
 
         VBox info = new VBox(2, nameLabel, emailLabel);
         HBox.setHgrow(info, javafx.scene.layout.Priority.ALWAYS);
@@ -218,6 +257,9 @@ public class ChatController {
             List<Map<String, Object>> messages = chatService.getMessages(currentUserId, otherUserId);
 
             messageContainer.getChildren().clear();
+
+            // Add date separators? For now just messages.
+
             for (Map<String, Object> msg : messages) {
                 int senderId = (int) msg.get("senderId");
                 String content = (String) msg.get("content");
@@ -230,7 +272,6 @@ public class ChatController {
                     if (tsObj instanceof Number) {
                         timestamp = ((Number) tsObj).longValue();
                     } else if (tsObj instanceof String) {
-                        // Try parsing if it's a string (unlikely with default Jackson but possible)
                         try {
                             timestamp = Long.parseLong((String) tsObj);
                         } catch (NumberFormatException e) {
@@ -245,24 +286,25 @@ public class ChatController {
                 }
 
                 HBox bubble = new HBox();
-                VBox bubbleContent = new VBox(2);
+                VBox bubbleContent = new VBox(4);
 
                 Label label = new Label(content);
                 label.setWrapText(true);
-                label.setMaxWidth(300);
-                label.setStyle("-fx-padding: 10; -fx-background-radius: 10;");
+                label.setMaxWidth(350); // Slightly wider
 
                 Label timeLabel = new Label(timeStr);
-                timeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: grey;");
+                timeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #a0aec0;");
 
                 if (senderId == currentUserId) {
                     bubble.setAlignment(Pos.CENTER_RIGHT);
                     bubbleContent.setAlignment(Pos.BOTTOM_RIGHT);
-                    label.setStyle(label.getStyle() + "-fx-background-color: #007bff; -fx-text-fill: white;");
+                    bubbleContent.getStyleClass().add("message-bubble-sent");
+                    // label style handled by css
                 } else {
                     bubble.setAlignment(Pos.CENTER_LEFT);
                     bubbleContent.setAlignment(Pos.BOTTOM_LEFT);
-                    label.setStyle(label.getStyle() + "-fx-background-color: #e9ecef; -fx-text-fill: black;");
+                    bubbleContent.getStyleClass().add("message-bubble-received");
+                    // label style handled by css
                 }
 
                 bubbleContent.getChildren().addAll(label, timeLabel);

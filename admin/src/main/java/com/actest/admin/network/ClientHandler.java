@@ -48,6 +48,8 @@ public class ClientHandler implements Runnable {
                     handleAnswer(message);
                 } else if (message.startsWith("RECONNECT:")) {
                     handleReconnect(message);
+                } else if (message.startsWith("VIOLATION:")) {
+                    handleViolation(message);
                 } else if (message.equals("READY")) {
                     // Client is ready, but we already sent START_EXAM with full content.
                     // We can log it or maybe re-send if needed, but for now do nothing.
@@ -61,6 +63,77 @@ public class ClientHandler implements Runnable {
         } finally {
             server.removeClient(this);
             close();
+        }
+    }
+
+    private int violationCount = 0;
+
+    public int getViolationCount() {
+        return violationCount;
+    }
+
+    private void handleViolation(String message) {
+        // Format: VIOLATION:type:examId:data(base64)
+        // Example: VIOLATION:FOCUS_LOST:123:base64...
+        try {
+            String[] parts = message.split(":", 4);
+            if (parts.length == 4) {
+                String type = parts[1];
+                String examIdStr = parts[2];
+                String base64Image = parts[3];
+
+                violationCount++;
+                System.out.println("VIOLATION detected for " + name + ": " + type);
+
+                // Save to DB
+                try {
+                    int examId = Integer.parseInt(examIdStr);
+                    com.actest.admin.service.StudentProgressService service = new com.actest.admin.service.StudentProgressService();
+                    service.saveViolation(name, examId, type, base64Image);
+                    System.out.println("Violation saved to DB.");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                // Save Image to File (Backup)
+                saveViolationImage(type, examIdStr, base64Image);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveViolationImage(String type, String examId, String base64Image) {
+        try {
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
+            java.io.File dir = new java.io.File("violations");
+            if (!dir.exists()) {
+                dir.mkdirs();
+            }
+
+            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+            String filename = name + "_" + examId + "_" + type + "_" + timestamp + ".png";
+            java.io.File file = new java.io.File(dir, filename);
+
+            try (java.io.FileOutputStream fos = new java.io.FileOutputStream(file)) {
+                fos.write(imageBytes);
+            }
+            System.out.println("Violation screenshot saved: " + file.getAbsolutePath());
+
+            // Notify Dashboard to update UI (if possible, or Dashboard polls)
+            // Since ClientHandler is running in a thread, we can't directly update JavaFX
+            // UI easily without a callback.
+            // But DashboardController refreshes periodically or we can rely on manual
+            // refresh/polling.
+            // For now, DashboardController.refreshClients() is called on events, but we
+            // might need to trigger it.
+            // We can assume DashboardController polls or we add a listener mechanism later
+            // if needed.
+            // Actually, Server.onMessage calls listeners. We could forward a notification.
+            server.onMessage(this, "VIOLATION_DETECTED"); // Let server know to refresh UI
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

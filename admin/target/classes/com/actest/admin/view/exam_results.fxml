@@ -19,20 +19,8 @@
         <Button text="Export to Excel" onAction="#handleExportExcel" styleClass="button"/>
     </HBox>
 
-    <VBox styleClass="card" VBox.vgrow="ALWAYS" style="-fx-padding: 0;">
-        <TableView fx:id="resultsTable" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-border-color: transparent;">
-            <columns>
-                <TableColumn fx:id="studentNameCol" text="Student Name" prefWidth="300"/>
-                <TableColumn fx:id="scoreCol" text="Score" prefWidth="150"/>
-                <TableColumn fx:id="focusLostCol" text="Focus Lost" prefWidth="150"/>
-            </columns>
-            <placeholder>
-                <Label text="No results found for this exam." style="-fx-text-fill: #718096;"/>
-            </placeholder>
-            <columnResizePolicy>
-                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
-            </columnResizePolicy>
-        </TableView>
-    </VBox>
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+        <FlowPane fx:id="resultsContainer" hgap="20" vgap="20" style="-fx-padding: 10;"/>
+    </ScrollPane>
 
 </VBox>

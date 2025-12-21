@@ -84,8 +84,10 @@ public class DashboardController {
                 @Override
                 public void onClientDisconnected(ClientHandler client) {
                     Platform.runLater(() -> {
-                        if (client.getName() != null && clientStates.containsKey(client.getName())) {
-                            clientStates.get(client.getName()).isDisconnected = true;
+                        // Use IP as key
+                        String ip = client.getIpAddress();
+                        if (ip != null && clientStates.containsKey(ip)) {
+                            clientStates.get(ip).isDisconnected = true;
                         }
                         refreshClients();
                         refreshExams(); // Update student count
@@ -110,10 +112,22 @@ public class DashboardController {
         System.out.println("Servers started for: " + serverName);
     }
 
+    private final com.actest.admin.service.StudentProgressService studentProgressService = new com.actest.admin.service.StudentProgressService();
+
     private void handleMessage(ClientHandler client, String message) {
         if (message.startsWith("JOIN:")) {
             String name = message.substring(5);
             client.setName(name);
+
+            // Check if this IP has an existing state (Reconnection)
+            String ip = client.getIpAddress();
+            if (ip != null && clientStates.containsKey(ip)) {
+                ClientState state = clientStates.get(ip);
+                // Update name in case it changed (though IP is same)
+                state.name = name;
+                System.out.println("Client reconnected from IP " + ip + " as " + name);
+            }
+
             Platform.runLater(() -> refreshClients());
         } else if (message.startsWith("SUBMIT_EXAM:")) {
             // Format: SUBMIT_EXAM:examId:JSON_ANSWERS
@@ -123,6 +137,55 @@ public class DashboardController {
                 String resultJson = parts[2];
                 System.out.println("Received result from " + client.getName() + " for exam " + examId);
                 handleExamSubmission(client, examId, resultJson);
+            }
+        } else if (message.startsWith("UPDATE_ANSWER:")) {
+            // Format: UPDATE_ANSWER:examId:questionId:answer
+            // We need to store this in ClientState
+            String[] parts = message.split(":", 4);
+            if (parts.length == 4) {
+                String answer = parts[3];
+                System.out.println("Received UPDATE_ANSWER from " + client.getName() + ": " + message);
+
+                String ip = client.getIpAddress();
+                if (ip != null) {
+                    // Update Memory State using IP
+                    if (clientStates.containsKey(ip)) {
+                        ClientState state = clientStates.get(ip);
+                        try {
+                            int qId = Integer.parseInt(parts[2]);
+                            state.answers.put(qId, answer);
+                            System.out.println("Updated ClientState for IP " + ip + " (" + client.getName() + "): Q"
+                                    + qId + "=" + answer);
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Persist to DB (Still use Name for DB? Or IP? User said "người mới là dựa vào
+                    // ip")
+                    // But DB schema uses 'student_name'.
+                    // If we use IP for DB, we need to change schema or store IP in student_name
+                    // column?
+                    // User request: "việc nhận diện người mới yêu cầu có phải bị out và cần làm
+                    // tiếp hay người mới là dựa vào ip không phải tên"
+                    // This implies the SESSION identification is IP-based.
+                    // For DB persistence, using Name is still better for long-term records,
+                    // BUT for "Resume" functionality specifically, we rely on the in-memory map
+                    // keyed by IP.
+                    // However, if we restart Admin, we lose memory map.
+                    // If we restart Admin, we need to load from DB.
+                    // If we load from DB by Name, but identify by IP...
+                    // Let's stick to Name for DB persistence for now as it's more stable for
+                    // records.
+                    // The IP is for "Session Recovery" while Admin is running.
+                    try {
+                        int examId = Integer.parseInt(parts[1]);
+                        int qId = Integer.parseInt(parts[2]);
+                        studentProgressService.saveAnswer(client.getName(), examId, qId, answer);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
@@ -144,8 +207,6 @@ public class DashboardController {
                     }
                 }
             }
-            // If not found in local cache (rare), try fetching (optional, but cache should
-            // have it)
 
             List<com.actest.admin.model.Question> questions = examService.getQuestionsByExamId(examId);
             int correctCount = 0;
@@ -180,6 +241,12 @@ public class DashboardController {
             String resultMsg = String.format("RESULT:%.2f:%d:%d:%b", score, correctCount, wrongCount, allowReview);
             client.sendMessage(resultMsg);
             System.out.println("Sent result to " + client.getName() + ": " + resultMsg);
+
+            // Clear client state as they finished
+            String ip = client.getIpAddress();
+            if (ip != null) {
+                clientStates.remove(ip);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -230,8 +297,10 @@ public class DashboardController {
 
         Label countLabel = new Label();
         if ("IN_PROGRESS".equals(exam.getStatus())) {
-            int connectedCount = tcpServer != null ? tcpServer.getAcceptedClients().size() : 0;
-            countLabel.setText("Students: " + connectedCount);
+            // Count students for THIS exam
+            long count = clientStates.values().stream().filter(s -> s.examId == exam.getId() && !s.isDisconnected)
+                    .count();
+            countLabel.setText("Students: " + count);
             countLabel.setStyle("-fx-text-fill: #0077cc; -fx-font-weight: bold;");
         }
 
@@ -327,7 +396,7 @@ public class DashboardController {
                     timeBroadcastServer = new com.actest.admin.network.TimeBroadcastServer();
                 }
                 int durationSeconds = exam.getDuration() * 60;
-                timeBroadcastServer.startBroadcast(durationSeconds);
+                timeBroadcastServer.startBroadcast(exam.getId(), durationSeconds); // Pass Exam ID
 
                 examService.updateStatus(exam.getId(), "IN_PROGRESS");
                 exam.setStatus("IN_PROGRESS");
@@ -353,11 +422,13 @@ public class DashboardController {
                 // Initialize Client States
                 for (ClientHandler client : tcpServer.getAcceptedClients()) {
                     if (client.getName() != null) {
-                        clientStates.put(client.getName(),
-                                new ClientState(client.getName(), exam.getId(), durationSeconds));
-                        client.setCurrentExam(exam);
-                        client.startExam(); // Send START_EXAM to client
-                        // client.sendNextQuestion(); // Wait for READY signal
+                        String ip = client.getIpAddress();
+                        if (ip != null && !clientStates.containsKey(ip)) {
+                            clientStates.put(ip,
+                                    new ClientState(client.getName(), exam.getId(), durationSeconds));
+                            client.setCurrentExam(exam);
+                            client.startExam(); // Send START_EXAM to client
+                        }
                     }
                 }
 
@@ -373,9 +444,23 @@ public class DashboardController {
 
     private void endExam(Exam exam) {
         if (tcpServer != null) {
-            tcpServer.broadcast("FORCE_SUBMIT");
-            tcpServer.broadcast("STOP_EXAM"); // Keep for backward compatibility or other logic
+            // Only stop clients in THIS exam
+            for (ClientHandler client : tcpServer.getAcceptedClients()) {
+                String ip = client.getIpAddress();
+                if (ip != null && clientStates.containsKey(ip)) {
+                    ClientState state = clientStates.get(ip);
+                    if (state.examId == exam.getId()) {
+                        client.sendMessage("FORCE_SUBMIT");
+                        client.sendMessage("STOP_EXAM");
+                    }
+                }
+            }
         }
+
+        if (timeBroadcastServer != null) {
+            timeBroadcastServer.stopBroadcast(exam.getId());
+        }
+
         examService.updateStatus(exam.getId(), "FINISHED");
         exam.setStatus("FINISHED");
         if (examTimers.containsKey(exam.getId())) {
@@ -391,9 +476,17 @@ public class DashboardController {
             examTimeRemaining.put(exam.getId(), examTimeRemaining.get(exam.getId()) + addedSeconds);
 
             if (timeBroadcastServer != null) {
-                timeBroadcastServer.addTime(addedSeconds);
+                timeBroadcastServer.addTime(exam.getId(), addedSeconds);
             }
         }
+    }
+
+    @FXML
+    private javafx.scene.control.TextField clientSearchField;
+
+    @FXML
+    private void handleClientSearch() {
+        refreshClients();
     }
 
     private void refreshClients() {
@@ -403,12 +496,19 @@ public class DashboardController {
         pendingStudentsContainer.getChildren().clear();
         connectedStudentsContainer.getChildren().clear();
 
+        String query = clientSearchField != null && clientSearchField.getText() != null
+                ? clientSearchField.getText().toLowerCase()
+                : "";
+
         for (ClientHandler client : tcpServer.getPendingClients()) {
             pendingStudentsContainer.getChildren().add(createStudentCard(client, true));
         }
 
         for (ClientHandler client : tcpServer.getAcceptedClients()) {
-            connectedStudentsContainer.getChildren().add(createStudentCard(client, false));
+            String name = client.getName() != null ? client.getName().toLowerCase() : "";
+            if (name.contains(query)) {
+                connectedStudentsContainer.getChildren().add(createStudentCard(client, false));
+            }
         }
     }
 
@@ -419,6 +519,7 @@ public class DashboardController {
         long startTime; // System.currentTimeMillis()
         int durationSeconds;
         boolean isDisconnected;
+        java.util.Map<Integer, String> answers = new java.util.HashMap<>(); // Store answers
 
         public ClientState(String name, int examId, int durationSeconds) {
             this.name = name;
@@ -431,29 +532,35 @@ public class DashboardController {
 
     private final Map<String, ClientState> clientStates = new HashMap<>();
 
+    // ... (createStudentCard - update violation count logic)
+
     private VBox createStudentCard(ClientHandler client, boolean isPending) {
         VBox card = new VBox(10);
+        // Larger card: min-width 250
         card.setStyle(
-                "-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 5; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 0); -fx-min-width: 150; -fx-alignment: center;");
+                "-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 8, 0, 0, 0); -fx-min-width: 250; -fx-alignment: center-left;");
 
         Label nameLabel = new Label(client.getName() != null ? client.getName() : "Unknown");
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2d3748;");
+        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #2d3748;");
 
         Label ipLabel = new Label("IP: " + client.getIpAddress());
-        ipLabel.setStyle("-fx-text-fill: #718096; -fx-font-size: 12px;");
+        ipLabel.setStyle("-fx-text-fill: #718096; -fx-font-size: 14px; -fx-font-family: 'Consolas', 'Monospaced';");
 
-        HBox buttonsBox = new HBox(5);
-        buttonsBox.setAlignment(Pos.CENTER);
+        VBox infoBox = new VBox(5, nameLabel, ipLabel);
+
+        HBox buttonsBox = new HBox(10);
+        buttonsBox.setAlignment(Pos.CENTER_RIGHT);
 
         if (isPending) {
             Button acceptBtn = new Button("Accept");
             acceptBtn.getStyleClass().add("button");
-            acceptBtn.setStyle("-fx-font-size: 10px; -fx-padding: 5 10;");
+            acceptBtn.setStyle("-fx-font-size: 12px; -fx-padding: 8 16;");
             acceptBtn.setOnAction(e -> {
                 client.accept();
-                // Check for resume
-                if (client.getName() != null && clientStates.containsKey(client.getName())) {
-                    ClientState state = clientStates.get(client.getName());
+                // Check for resume using IP
+                String ip = client.getIpAddress();
+                if (ip != null && clientStates.containsKey(ip)) {
+                    ClientState state = clientStates.get(ip);
                     if (state.isDisconnected) {
                         state.isDisconnected = false;
                         // Offer resume
@@ -461,14 +568,14 @@ public class DashboardController {
                             javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
                                     javafx.scene.control.Alert.AlertType.CONFIRMATION);
                             alert.setTitle("Resume Exam");
-                            alert.setHeaderText("Client " + client.getName() + " was in an exam.");
+                            alert.setHeaderText("Client IP " + ip + " (" + state.name + ") was in an exam.");
                             alert.setContentText("Do you want to resume their exam?");
 
                             alert.showAndWait().ifPresent(response -> {
                                 if (response == javafx.scene.control.ButtonType.OK) {
                                     resumeExam(client, state);
                                 } else {
-                                    clientStates.remove(client.getName()); // Clear state if not resuming
+                                    clientStates.remove(ip); // Clear state if not resuming
                                 }
                             });
                         });
@@ -479,7 +586,7 @@ public class DashboardController {
 
             Button rejectBtn = new Button("Reject");
             rejectBtn.getStyleClass().add("button-danger");
-            rejectBtn.setStyle("-fx-font-size: 10px; -fx-padding: 5 10;");
+            rejectBtn.setStyle("-fx-font-size: 12px; -fx-padding: 8 16;");
             rejectBtn.setOnAction(e -> {
                 client.reject();
                 refreshClients();
@@ -489,7 +596,7 @@ public class DashboardController {
         } else {
             Button removeBtn = new Button("Remove");
             removeBtn.getStyleClass().add("button-secondary");
-            removeBtn.setStyle("-fx-font-size: 10px; -fx-padding: 5 10;");
+            removeBtn.setStyle("-fx-font-size: 12px; -fx-padding: 8 16;");
             removeBtn.setOnAction(e -> {
                 client.sendMessage("REMOVED");
                 client.close(); // Or specific remove logic
@@ -498,17 +605,28 @@ public class DashboardController {
             buttonsBox.getChildren().add(removeBtn);
 
             // Show status if in exam
-            if (client.getName() != null && clientStates.containsKey(client.getName())) {
-                ClientState state = clientStates.get(client.getName());
+            String ip = client.getIpAddress();
+            if (ip != null && clientStates.containsKey(ip)) {
+                ClientState state = clientStates.get(ip);
                 long elapsed = (System.currentTimeMillis() - state.startTime) / 1000;
                 long remaining = state.durationSeconds - elapsed;
                 Label statusLabel = new Label(remaining > 0 ? "Time: " + remaining / 60 + "m" : "Finished");
-                statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 10px;");
-                card.getChildren().add(statusLabel);
+                statusLabel.setStyle("-fx-text-fill: green; -fx-font-size: 12px; -fx-font-weight: bold;");
+                infoBox.getChildren().add(statusLabel);
+
+                // Show Violations (Load from DB + Memory)
+                int dbViolations = studentProgressService.getViolationCount(client.getName(), state.examId);
+                int totalViolations = dbViolations;
+
+                if (totalViolations > 0) {
+                    Label violationLabel = new Label("Violations: " + totalViolations);
+                    violationLabel.setStyle("-fx-text-fill: red; -fx-font-size: 12px; -fx-font-weight: bold;");
+                    infoBox.getChildren().add(violationLabel);
+                }
             }
         }
 
-        card.getChildren().addAll(nameLabel, ipLabel, buttonsBox);
+        card.getChildren().addAll(infoBox, buttonsBox);
         return card;
     }
 
@@ -537,24 +655,12 @@ public class DashboardController {
                 if (remaining < 0)
                     remaining = 0;
 
-                // We need to send remaining time to client.
-                // The current START_EXAM sends the whole exam object which has 'duration'.
-                // We should update the duration in the sent object to be the remaining time.
-                // Or send a separate RESUME packet.
-                // Let's modify the exam object copy to have new duration.
-                // Actually, modifying the exam object might be tricky if it affects other
-                // things.
-                // Let's send RESUME_EXAM:examJson:answersJson (answers empty for now)
+                // Load answers from DB to ensure we have latest
+                Map<Integer, String> dbAnswers = studentProgressService.getAnswers(client.getName(), state.examId);
+                state.answers.putAll(dbAnswers); // Sync memory with DB
 
-                // Hack: Modify duration in JSON or Object
-                // Better: Send START_EXAM but with modified duration.
-                // But client handles START_EXAM by just showing it.
-                // Let's use RESUME_EXAM as planned in Client DashboardController.
-
-                // Construct RESUME_EXAM message
-                // Format: RESUME_EXAM:examJson|||answersJson
-                // We don't have answers here unless we tracked them. For now send empty map.
-                String answersJson = "{}";
+                // Send answers
+                String answersJson = mapper.writeValueAsString(state.answers);
 
                 // We should update the duration in the examJson to reflect remaining time?
                 // Or client calculates? Client usually takes duration from exam object.
