@@ -1,0 +1,45 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS exams (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    duration INTEGER NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    creator_id INTEGER REFERENCES users(id)
+);
+
+ALTER TABLE exams ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'NOT_STARTED';
+ALTER TABLE exams ADD COLUMN IF NOT EXISTS creator_id INTEGER REFERENCES users(id);
+ALTER TABLE exams ADD COLUMN IF NOT EXISTS allow_review BOOLEAN DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS questions (
+    id SERIAL PRIMARY KEY,
+    exam_id INTEGER REFERENCES exams(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    options TEXT NOT NULL,
+    correct_option_index INTEGER NOT NULL
+);
+
+
+
+CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(id),
+    receiver_id INTEGER REFERENCES users(id),
+    content TEXT NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS friend_requests (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(id),
+    receiver_id INTEGER REFERENCES users(id),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING', -- PENDING, ACCEPTED, REJECTED
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(sender_id, receiver_id)
+);

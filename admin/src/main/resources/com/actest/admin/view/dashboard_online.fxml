@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<BorderPane xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="com.actest.admin.online.controller.DashboardController" stylesheets="@../../../../styles.css">
+    <left>
+        <VBox styleClass="sidebar" spacing="10" prefWidth="250">
+            <Label text="ACTEST Admin" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 20; -fx-text-fill: #0077cc;"/>
+            <Button text="Server Exams" onAction="#showServerExams" styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button text="My Exams" onAction="#showMyExams" styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button text="Chat" onAction="#handleChat" styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Button text="Profile" onAction="#showProfile" styleClass="sidebar-button" maxWidth="Infinity"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="sidebar-button" maxWidth="Infinity"/>
+        </VBox>
+    </left>
+    <center>
+        <StackPane fx:id="contentArea" style="-fx-padding: 20;">
+            <!-- Views will be loaded here -->
+            <VBox fx:id="serverExamsView" spacing="20">
+                <HBox alignment="CENTER_LEFT" spacing="20">
+                    <Label text="Server Exams" styleClass="header-label"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="searchField" promptText="Search exams..." onKeyReleased="#handleSearch"/>
+                </HBox>
+                <javafx.scene.control.ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                    <content>
+                        <javafx.scene.layout.FlowPane fx:id="serverExamCardsContainer" hgap="20" vgap="20" style="-fx-padding: 10;"/>
+                    </content>
+                </javafx.scene.control.ScrollPane>
+            </VBox>
+            
+            <VBox fx:id="myExamsView" spacing="20" visible="false">
+                <HBox alignment="CENTER_LEFT" spacing="20">
+                    <Label text="My Exams" styleClass="header-label"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Create New Exam" onAction="#handleCreateExam"/>
+                </HBox>
+                <javafx.scene.control.ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                    <content>
+                        <javafx.scene.layout.FlowPane fx:id="myExamCardsContainer" hgap="20" vgap="20" style="-fx-padding: 10;"/>
+                    </content>
+                </javafx.scene.control.ScrollPane>
+            </VBox>
+            
+            <VBox fx:id="profileView" spacing="20" visible="false" styleClass="card" maxWidth="600">
+                 <Label text="My Profile" styleClass="header-label"/>
+                 <VBox spacing="15">
+                     <Label text="Email" styleClass="sub-header-label"/>
+                     <TextField fx:id="profileEmailField"/>
+                     <Label text="Name" styleClass="sub-header-label"/>
+                     <TextField fx:id="profileNameField"/>
+                     <Label text="Password" styleClass="sub-header-label"/>
+                     <PasswordField fx:id="profilePasswordField"/>
+                     <Button text="Update Profile" onAction="#handleUpdateProfile"/>
+                 </VBox>
+            </VBox>
+        </StackPane>
+    </center>
+</BorderPane>

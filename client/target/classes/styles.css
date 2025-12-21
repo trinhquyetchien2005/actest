@@ -1,0 +1,186 @@
+/* Global Styles */
+.root {
+    -fx-font-family: 'Segoe UI', 'Roboto', sans-serif;
+    -fx-background-color: #f4f6f8;
+    /* Light Gray-Blue Background */
+    -fx-font-size: 14px;
+    -fx-text-fill: #2d3748;
+}
+
+/* Headers */
+.header-label {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1a202c;
+    /* Darker Slate */
+    -fx-effect: none;
+    /* Removed heavy shadow for cleaner look */
+    -fx-padding: 0 0 10 0;
+}
+
+.sub-header-label {
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #718096;
+    /* Muted Slate */
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: #0056b3;
+    /* Primary Blue */
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+    -fx-background-radius: 6;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    -fx-effect: none;
+    /* Flat design */
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+}
+
+.button:hover {
+    -fx-background-color: #004494;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 86, 179, 0.2), 4, 0, 0, 2);
+}
+
+.button:pressed {
+    -fx-background-color: #003377;
+}
+
+.button-secondary {
+    -fx-background-color: white;
+    -fx-text-fill: #0056b3;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 6;
+}
+
+.button-secondary:hover {
+    -fx-background-color: #f7fafc;
+    -fx-border-color: #cbd5e0;
+}
+
+.button-danger {
+    -fx-background-color: #e53e3e;
+    /* Red */
+    -fx-text-fill: white;
+}
+
+.button-danger:hover {
+    -fx-background-color: #c53030;
+}
+
+/* Text Fields & Password Fields */
+.text-field,
+.password-field {
+    -fx-background-color: white;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10;
+    -fx-prompt-text-fill: #a0aec0;
+    -fx-text-fill: #2d3748;
+}
+
+.text-field:focused,
+.password-field:focused {
+    -fx-border-color: #0056b3;
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 86, 179, 0.15), 4, 0, 0, 0);
+}
+
+/* Cards / Containers */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 10, 0, 0, 4);
+    -fx-padding: 30;
+    -fx-border-color: #edf2f7;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+}
+
+/* Tab Pane */
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: transparent;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-text-fill: #718096;
+    -fx-font-weight: 600;
+    -fx-padding: 12 24;
+    -fx-border-width: 0 0 2 0;
+    -fx-border-color: transparent;
+}
+
+.tab-pane .tab:selected {
+    -fx-text-fill: #0056b3;
+    -fx-border-color: #0056b3;
+}
+
+.tab-pane .tab:hover {
+    -fx-text-fill: #2b6cb0;
+    -fx-background-color: rgba(0, 86, 179, 0.05);
+}
+
+/* List View */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 5;
+}
+
+.list-cell {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.03), 4, 0, 0, 2);
+    -fx-padding: 12;
+    -fx-margin: 0 0 8 0;
+    -fx-border-color: #edf2f7;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+}
+
+.list-cell:filled:selected {
+    -fx-background-color: #ebf8ff;
+    -fx-border-color: #bee3f8;
+    -fx-text-fill: #2c5282;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #f7fafc;
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 6, 0, 2, 0);
+    -fx-border-color: transparent #e2e8f0 transparent transparent;
+    -fx-border-width: 1;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4a5568;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 14 24;
+    -fx-font-size: 15px;
+    -fx-font-weight: 500;
+    -fx-background-radius: 0;
+    -fx-border-width: 0 0 0 3;
+    -fx-border-color: transparent;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #f7fafc;
+    -fx-text-fill: #0056b3;
+}
+
+.sidebar-button:selected {
+    -fx-background-color: #ebf8ff;
+    -fx-text-fill: #0056b3;
+    -fx-border-color: #0056b3;
+}

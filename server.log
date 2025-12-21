@@ -1,0 +1,11 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------------< [0;36mcom.actest:server[0;1m >--------------------------[m
+[[1;34mINFO[m] [1mBuilding ACTEST Server 1.0-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mexec-maven-plugin:3.6.2:java[m [1m(default-cli)[m @ [36mserver[0;1m ---[m
+Server is running...
+Database initialized successfully.
+Database already contains data. Skipping seed.
+HTTP Server started on port 8080

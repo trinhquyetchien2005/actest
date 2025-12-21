@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.actest.admin.controller.ExamDetailController" stylesheets="@../../../../styles.css">
+    <VBox alignment="CENTER" styleClass="root" spacing="20" style="-fx-padding: 20;">
+        <VBox spacing="20" styleClass="card" maxWidth="800" VBox.vgrow="ALWAYS">
+            <Label text="Exam Details" styleClass="header-label"/>
+            
+            <HBox spacing="20">
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="Exam Name" styleClass="sub-header-label"/>
+                    <TextField fx:id="examNameField" promptText="Enter exam name"/>
+                </VBox>
+                <VBox spacing="5">
+                    <Label text="Duration (minutes)" styleClass="sub-header-label"/>
+                    <TextField fx:id="durationField" promptText="60" prefWidth="100"/>
+                </VBox>
+            </HBox>
+
+            <javafx.scene.control.CheckBox fx:id="allowReviewCheckbox" text="Allow Review Answers after submission"/>
+            
+            <Label text="Questions" styleClass="sub-header-label"/>
+            <javafx.scene.control.ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                <VBox fx:id="questionContainer" spacing="10" style="-fx-padding: 10;"/>
+            </javafx.scene.control.ScrollPane>
+            
+            <VBox fx:id="addQuestionBox" spacing="10" styleClass="card" style="-fx-background-color: #f0f0f0; -fx-padding: 10;">
+                <Label text="Add New Question" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="newQuestionField" promptText="Question Text"/>
+                <HBox spacing="10">
+                    <TextField fx:id="optionAField" promptText="Option A" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="optionBField" promptText="Option B" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox spacing="10">
+                    <TextField fx:id="optionCField" promptText="Option C" HBox.hgrow="ALWAYS"/>
+                    <TextField fx:id="optionDField" promptText="Option D" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Label text="Correct Answer:"/>
+                    <TextField fx:id="correctAnswerField" promptText="A/B/C/D" prefWidth="80"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Add to Exam" onAction="#handleAddQuestion" styleClass="button-secondary"/>
+                </HBox>
+            </VBox>
+
+            <HBox spacing="10" alignment="CENTER_RIGHT">
+                <Button text="Cancel" onAction="#handleCancel" styleClass="button-danger"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="downloadBtn" text="Download" onAction="#handleDownload" styleClass="button-secondary" visible="false"/>
+                <Button fx:id="saveBtn" text="Save Exam" onAction="#handleSave"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

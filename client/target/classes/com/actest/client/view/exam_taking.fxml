@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.FlowPane?>
+
+<BorderPane fx:controller="com.actest.client.controller.ExamTakingController"
+        xmlns:fx="http://javafx.com/fxml/1"
+        xmlns="http://javafx.com/javafx/17"
+        stylesheets="@../../../../styles.css">
+
+        <top>
+            <HBox spacing="20" alignment="CENTER_LEFT" style="-fx-padding: 10; -fx-background-color: white; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 0, 2, 0, 0);">
+                <Label fx:id="examNameLabel" text="Exam Name" style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Time Remaining:" style="-fx-font-size: 14px;"/>
+                <Label fx:id="timerLabel" text="00:00" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #e53e3e;"/>
+            </HBox>
+        </top>
+
+        <center>
+            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-padding: 20;">
+                <VBox fx:id="questionArea" spacing="20">
+                    <!-- Question content will be injected here -->
+                </VBox>
+            </ScrollPane>
+        </center>
+
+        <right>
+            <VBox spacing="15" style="-fx-padding: 15; -fx-background-color: #f7fafc; -fx-border-color: #e2e8f0; -fx-border-width: 0 0 0 1; -fx-min-width: 250; -fx-pref-width: 250;">
+                <Label text="Question List" style="-fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+                    <FlowPane fx:id="questionGrid" hgap="10" vgap="10" prefWrapLength="200">
+                        <!-- Grid buttons injected here -->
+                    </FlowPane>
+                </ScrollPane>
+                <Button text="Submit Exam" onAction="#handleSubmit" styleClass="button-danger" maxWidth="Infinity"/>
+            </VBox>
+        </right>
+
+
+</BorderPane>

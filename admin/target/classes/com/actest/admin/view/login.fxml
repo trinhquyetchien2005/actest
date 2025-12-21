@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.actest.admin.controller.LoginController" stylesheets="@../../../../styles.css">
+    <VBox alignment="CENTER" styleClass="root" spacing="20" style="-fx-padding: 20;">
+        <Label text="ACTEST Admin" styleClass="header-label"/>
+        
+        <TabPane tabClosingPolicy="UNAVAILABLE" styleClass="card" maxWidth="400">
+            <tabs>
+                <Tab text="Online">
+                    <StackPane>
+                        <!-- Login Form -->
+                        <VBox fx:id="loginForm" spacing="15" style="-fx-padding: 20;" alignment="CENTER">
+                            <Label text="Login" styleClass="sub-header-label"/>
+                            <TextField fx:id="emailField" promptText="Email"/>
+                            <PasswordField fx:id="passwordField" promptText="Password"/>
+                            <Button text="Login" onAction="#handleOnlineLogin" maxWidth="Infinity"/>
+                            <Button text="Go to Register" onAction="#showRegisterForm" styleClass="button-secondary" maxWidth="Infinity"/>
+                        </VBox>
+                        
+                        <!-- Register Form -->
+                        <VBox fx:id="registerForm" spacing="15" style="-fx-padding: 20;" alignment="CENTER" visible="false">
+                            <Label text="Register" styleClass="sub-header-label"/>
+                            <TextField fx:id="regNameField" promptText="Name"/>
+                            <TextField fx:id="regEmailField" promptText="Email"/>
+                            <PasswordField fx:id="regPasswordField" promptText="Password"/>
+                            <PasswordField fx:id="regConfirmPasswordField" promptText="Confirm Password"/>
+                            <Button text="Register" onAction="#handleRegister" maxWidth="Infinity"/>
+                            <Button text="Back to Login" onAction="#showLoginForm" styleClass="button-secondary" maxWidth="Infinity"/>
+                        </VBox>
+                    </StackPane>
+                </Tab>
+                <Tab text="Offline">
+                    <VBox spacing="15" style="-fx-padding: 20;" alignment="CENTER">
+                        <Label text="Start Local Server" styleClass="sub-header-label"/>
+                        <TextField fx:id="serverNameField" promptText="Server Name (for LAN Discovery)"/>
+                        <Button text="Check Availability" onAction="#handleCheckAvailability" styleClass="button-secondary" maxWidth="Infinity"/>
+                        <Label fx:id="availabilityLabel" text="" style="-fx-font-size: 12px;"/>
+                        <Button fx:id="startServerBtn" text="Start Server" onAction="#handleStartServer" maxWidth="Infinity" disable="true"/>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </VBox>
+    
+    <!-- OTP Overlay -->
+    <VBox fx:id="otpOverlay" visible="false" alignment="CENTER" style="-fx-background-color: rgba(0,0,0,0.5);">
+        <VBox styleClass="card" maxWidth="300" spacing="15" alignment="CENTER">
+            <Label text="Enter OTP" styleClass="sub-header-label"/>
+            <Label text="Check your email for the code." wrapText="true"/>
+            <TextField fx:id="otpField" promptText="OTP Code"/>
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="Verify" onAction="#handleVerifyOtp" maxWidth="Infinity" HBox.hgrow="ALWAYS"/>
+                <Button text="Cancel" onAction="#handleCancelOtp" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="button-secondary"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>

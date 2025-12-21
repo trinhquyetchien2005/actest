@@ -1,0 +1,66 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------------< [0;36mcom.actest:client[0;1m >--------------------------[m
+[[1;34mINFO[m] [1mBuilding ACTEST Client 1.0-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m>>> [0;32mjavafx-maven-plugin:0.0.8:run[m [1m(default-cli)[0;1m > [0;1mprocess-classes[m @ [36mclient[0;1m >>>[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:2.6:resources[m [1m(default-resources)[m @ [36mclient[0;1m ---[m
+[[1;34mINFO[m] Using 'UTF-8' encoding to copy filtered resources.
+[[1;34mINFO[m] Copying 7 resources
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.11.0:compile[m [1m(default-compile)[m @ [36mclient[0;1m ---[m
+[[1;34mINFO[m] Nothing to compile - all classes are up to date
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m<<< [0;32mjavafx-maven-plugin:0.0.8:run[m [1m(default-cli)[0;1m < [0;1mprocess-classes[m @ [36mclient[0;1m <<<[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mjavafx-maven-plugin:0.0.8:run[m [1m(default-cli)[m @ [36mclient[0;1m ---[m
+[[1;33mWARNING[m] Module name not found in <mainClass>. Module name will be assumed from module-info.java
+Local database initialized and migrated successfully.
+Sent discovery request
+Sent discovery request
+Connecting to 192.168.1.13
+Received from server: ACCEPTED
+Received from server: START_EXAM:{"id":3,"name":"Java Basics","duration":30,"creatorId":1,"questions":[{"id":7,"content":"What is the size of int in Java?","options":["16 bit","32 bit","64 bit","8 bit"],"correctOptionIndex":1},{"id":8,"content":"Which keyword is used to define a class?","options":["class","struct","define","interface"],"correctOptionIndex":0}],"status":"NOT_STARTED","creatorName":null}
+com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field "creatorName" (class com.actest.client.model.Exam), not marked as ignorable (6 known properties: "status", "duration", "creatorId", "id", "questions", "name"])
+ at [Source: (String)"{"id":3,"name":"Java Basics","duration":30,"creatorId":1,"questions":[{"id":7,"content":"What is the size of int in Java?","options":["16 bit","32 bit","64 bit","8 bit"],"correctOptionIndex":1},{"id":8,"content":"Which keyword is used to define a class?","options":["class","struct","define","interface"],"correctOptionIndex":0}],"status":"NOT_STARTED","creatorName":null}"; line: 1, column: 372] (through reference chain: com.actest.client.model.Exam["creatorName"])
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1138)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2224)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperty(BeanDeserializerBase.java:1709)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownVanilla(BeanDeserializerBase.java:1687)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.deser.BeanDeserializer.vanillaDeserialize(BeanDeserializer.java:320)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:177)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:323)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose(ObjectMapper.java:4825)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3772)
+	at com.fasterxml.jackson.databind@2.15.2/com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3740)
+	at com.actest.client@1.0-SNAPSHOT/com.actest.client.controller.DashboardController.lambda$initialize$5(DashboardController.java:25)
+	at com.actest.client@1.0-SNAPSHOT/com.actest.client.network.Client.listen(Client.java:49)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Sent discovery request
+Sent discovery request
+java.net.BindException: Address already in use
+	at java.base/sun.nio.ch.Net.bind0(Native Method)
+	at java.base/sun.nio.ch.Net.bind(Net.java:565)
+	at java.base/sun.nio.ch.DatagramChannelImpl.bindInternal(DatagramChannelImpl.java:1329)
+	at java.base/sun.nio.ch.DatagramChannelImpl.bind(DatagramChannelImpl.java:1299)
+	at java.base/sun.nio.ch.DatagramSocketAdaptor.bind(DatagramSocketAdaptor.java:108)
+	at java.base/java.net.DatagramSocket.createDelegate(DatagramSocket.java:1425)
+	at java.base/java.net.DatagramSocket.<init>(DatagramSocket.java:328)
+	at java.base/java.net.DatagramSocket.<init>(DatagramSocket.java:387)
+	at java.base/java.net.DatagramSocket.<init>(DatagramSocket.java:353)
+	at com.actest.client@1.0-SNAPSHOT/com.actest.client.network.DiscoveryClient.discoverServers(DiscoveryClient.java:20)
+	at com.actest.client@1.0-SNAPSHOT/com.actest.client.controller.LoginController.lambda$scanForServers$1(LoginController.java:36)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Connecting to 192.168.1.13
+Received from server: ACCEPTED
+Sent discovery request
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;32mBUILD SUCCESS[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  57.672 s
+[[1;34mINFO[m] Finished at: 2025-12-21T01:48:03+07:00
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m

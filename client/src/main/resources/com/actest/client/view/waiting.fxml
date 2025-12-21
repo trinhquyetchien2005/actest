@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER" spacing="20" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" stylesheets="@../../../../styles.css" fx:controller="com.actest.client.controller.WaitingController">
+    <Label text="Waiting for Admin Approval..." styleClass="header-label"/>
+    <ProgressIndicator />
+    <Label text="Please wait while the admin accepts your connection." styleClass="label"/>
+    <javafx.scene.control.Button text="Cancel" onAction="#handleCancel" styleClass="button-secondary"/>
+</VBox>
