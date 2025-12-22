@@ -4,6 +4,7 @@ com/actest/server/repository/QuestionRepository.class
 com/actest/server/service/ResultService.class
 com/actest/server/controller/AuthHandler.class
 com/actest/server/model/FriendRequest.class
+com/actest/server/network/VideoCallServer.class
 com/actest/server/repository/FriendRepository.class
 com/actest/server/controller/ExamHandler$UploadRequest.class
 com/actest/server/util/DatabaseResetter.class
@@ -27,3 +28,4 @@ com/actest/server/repository/DatabaseConnection.class
 com/actest/server/ServerApp.class
 com/actest/server/controller/ExamHandler.class
 com/actest/server/service/ExamService.class
+com/actest/server/network/VideoCallServer$ClientHandler.class

@@ -7,6 +7,9 @@ module com.actest.admin {
     requires com.fasterxml.jackson.databind;
     requires org.apache.poi.poi;
     requires org.apache.poi.ooxml;
+    requires java.desktop;
+    requires javafx.swing;
+    requires webcam.capture;
 
     opens com.actest.admin to javafx.fxml;
     opens com.actest.admin.offline.controller to javafx.fxml;

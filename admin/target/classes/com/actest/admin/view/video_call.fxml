@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+           fx:controller="com.actest.admin.controller.VideoCallController"
+           style="-fx-background-color: #1a202c;">
+
+    <!-- Remote Video (Full Screen) -->
+    <ImageView fx:id="remoteVideoView" fitWidth="800" fitHeight="600" preserveRatio="true"/>
+
+    <!-- Local Video (Picture in Picture) -->
+    <StackPane alignment="BOTTOM_RIGHT" pickOnBounds="false">
+        <padding>
+            <Insets bottom="20" right="20"/>
+        </padding>
+        <ImageView fx:id="localVideoView" fitWidth="160" fitHeight="120" preserveRatio="true" 
+                   style="-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);"/>
+    </StackPane>
+
+    <!-- Controls -->
+    <VBox alignment="BOTTOM_CENTER" pickOnBounds="false" spacing="20">
+        <padding>
+            <Insets bottom="30"/>
+        </padding>
+        <Button text="End Call" onAction="#handleEndCall" 
+                style="-fx-background-color: #e53e3e; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 30; -fx-background-radius: 20;"/>
+    </VBox>
+
+</StackPane>

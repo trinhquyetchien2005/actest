@@ -40,6 +40,9 @@ public class ServerApp {
             server.start();
             System.out.println("HTTP Server started on port 8080");
 
+            // Start Video Call Server
+            new com.actest.server.network.VideoCallServer().start();
+
         } catch (Exception e) {
             System.err.println("Failed to start server: " + e.getMessage());
             e.printStackTrace();

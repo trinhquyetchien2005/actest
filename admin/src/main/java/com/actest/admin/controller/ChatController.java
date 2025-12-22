@@ -346,6 +346,45 @@ public class ChatController {
     }
 
     @FXML
+    public void handleVideoCall() {
+        if (selectedUser == null)
+            return;
+
+        int otherUserId = (int) selectedUser.get("id");
+
+        // Send a message to notify the other user (optional, for now just open window)
+        // In a real app, we'd wait for acceptance.
+        try {
+            chatService.sendMessage(AuthService.getCurrentUserId(), otherUserId, "VIDEO_CALL_STARTED");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        openVideoCallWindow(otherUserId);
+    }
+
+    private void openVideoCallWindow(int targetUserId) {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(
+                    getClass().getResource("/com/actest/admin/view/video_call.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            VideoCallController controller = loader.getController();
+            controller.setTargetUserId(targetUserId);
+
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Video Call");
+            stage.setScene(new javafx.scene.Scene(root, 800, 600));
+            stage.setOnCloseRequest(e -> controller.stop());
+            stage.show();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not start video call: " + e.getMessage());
+        }
+    }
+
+    @FXML
     public void handleBack() {
         if (poller != null) {
             poller.shutdown();

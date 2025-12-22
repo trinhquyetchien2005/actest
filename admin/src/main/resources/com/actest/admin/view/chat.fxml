@@ -9,6 +9,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.actest.admin.controller.ChatController" stylesheets="@../../../../styles.css">
     <left>
@@ -42,8 +43,10 @@
     </left>
     <center>
         <VBox spacing="0">
-            <HBox styleClass="chat-header">
-                <Label fx:id="chatWithLabel" text="Select a user to chat" styleClass="header-label"/>
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 0 0 10 0; -fx-border-color: transparent transparent #e2e8f0 transparent;">
+                <Label fx:id="chatWithLabel" text="Select a friend to chat" style="-fx-font-weight: bold; -fx-font-size: 16px;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Video Call" onAction="#handleVideoCall" styleClass="button-secondary"/>
             </HBox>
             <ScrollPane fx:id="messageScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent; -fx-padding: 10;">
                 <VBox fx:id="messageContainer" spacing="15" style="-fx-padding: 10;"/>
