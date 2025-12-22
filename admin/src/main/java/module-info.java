@@ -10,6 +10,7 @@ module com.actest.admin {
     requires java.desktop;
     requires javafx.swing;
     requires webcam.capture;
+    requires io.github.cdimascio.dotenv.java;
 
     opens com.actest.admin to javafx.fxml;
     opens com.actest.admin.offline.controller to javafx.fxml;

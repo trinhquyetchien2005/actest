@@ -316,8 +316,100 @@ public class ChatController {
             messageScrollPane.layout();
             messageScrollPane.setVvalue(1.0);
 
+            // Check for Incoming Call
+            if (!messages.isEmpty()) {
+                Map<String, Object> lastMsg = messages.get(messages.size() - 1);
+                String content = (String) lastMsg.get("content");
+                int senderId = (int) lastMsg.get("senderId");
+                long timestamp = 0;
+                if (lastMsg.get("timestamp") != null) {
+                    timestamp = Long.parseLong(lastMsg.get("timestamp").toString());
+                }
+
+                // If it's a call request from the other user, and it's recent (within last 10
+                // seconds), and we haven't handled it
+                // If it's a call request from the other user, and it's recent (within last 15
+                // seconds)
+                if ("VIDEO_CALL_STARTED".equals(content) && senderId == otherUserId) {
+                    long now = System.currentTimeMillis();
+                    // Only handle if the message is less than 15 seconds old
+                    if (now - timestamp < 15000) {
+                        if (timestamp > lastHandledCallTimestamp) {
+                            lastHandledCallTimestamp = timestamp;
+                            Platform.runLater(() -> showIncomingCallDialog(senderId));
+                        }
+                    }
+                }
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private long lastHandledCallTimestamp = 0;
+
+    private javax.sound.sampled.SourceDataLine ringtoneLine;
+    private boolean isRinging = false;
+
+    private void startRingtone() {
+        if (isRinging)
+            return;
+        isRinging = true;
+        new Thread(() -> {
+            try {
+                float sampleRate = 8000f;
+                javax.sound.sampled.AudioFormat af = new javax.sound.sampled.AudioFormat(sampleRate, 8, 1, true, true);
+                javax.sound.sampled.DataLine.Info info = new javax.sound.sampled.DataLine.Info(
+                        javax.sound.sampled.SourceDataLine.class, af);
+                ringtoneLine = (javax.sound.sampled.SourceDataLine) javax.sound.sampled.AudioSystem.getLine(info);
+                ringtoneLine.open(af);
+                ringtoneLine.start();
+
+                byte[] buffer = new byte[8000]; // 1 second buffer
+                double freq = 440.0; // A4
+
+                while (isRinging) {
+                    // Generate beep (0.5s on, 0.5s off)
+                    for (int i = 0; i < buffer.length; i++) {
+                        double angle = 2.0 * Math.PI * i / (sampleRate / freq);
+                        // Simple sine wave, modulated to beep
+                        if (i < 4000) {
+                            buffer[i] = (byte) (Math.sin(angle) * 100);
+                        } else {
+                            buffer[i] = 0;
+                        }
+                    }
+                    ringtoneLine.write(buffer, 0, buffer.length);
+                }
+                ringtoneLine.drain();
+                ringtoneLine.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    private void stopRingtone() {
+        isRinging = false;
+        if (ringtoneLine != null) {
+            ringtoneLine.close();
+        }
+    }
+
+    private void showIncomingCallDialog(int callerId) {
+        startRingtone();
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Incoming Video Call");
+        alert.setHeaderText("Incoming Video Call");
+        alert.setContentText("User " + callerId + " is calling you. Accept?");
+
+        java.util.Optional<javafx.scene.control.ButtonType> result = alert.showAndWait();
+        stopRingtone();
+
+        if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+            openVideoCallWindow(callerId);
         }
     }
 

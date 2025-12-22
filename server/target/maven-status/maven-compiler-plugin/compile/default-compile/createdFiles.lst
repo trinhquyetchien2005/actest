@@ -28,4 +28,3 @@ com/actest/server/repository/DatabaseConnection.class
 com/actest/server/ServerApp.class
 com/actest/server/controller/ExamHandler.class
 com/actest/server/service/ExamService.class
-com/actest/server/network/VideoCallServer$ClientHandler.class

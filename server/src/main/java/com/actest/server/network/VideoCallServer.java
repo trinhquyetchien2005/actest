@@ -1,87 +1,88 @@
 package com.actest.server.network;
 
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class VideoCallServer {
+public class VideoCallServer implements Runnable {
     private static final int PORT = 9000;
-    private static final Map<Integer, Socket> clients = new ConcurrentHashMap<>();
+    private static final int BUFFER_SIZE = 64000; // Max UDP size is ~65k
+
+    // Map userId -> Client Address
+    private final Map<Integer, InetSocketAddress> clients = new ConcurrentHashMap<>();
+    private DatagramSocket socket;
+    private boolean running = false;
 
     public void start() {
-        new Thread(() -> {
-            try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-                System.out.println("Video Call Server started on port " + PORT);
-
-                while (true) {
-                    Socket socket = serverSocket.accept();
-                    new Thread(new ClientHandler(socket)).start();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).start();
+        new Thread(this).start();
     }
 
-    private static class ClientHandler implements Runnable {
-        private final Socket socket;
-        private int userId = -1;
+    @Override
+    public void run() {
+        try {
+            socket = new DatagramSocket(PORT);
+            running = true;
+            System.out.println("Video Call UDP Server started on port " + PORT);
 
-        public ClientHandler(Socket socket) {
-            this.socket = socket;
-        }
+            byte[] buffer = new byte[BUFFER_SIZE];
 
-        @Override
-        public void run() {
-            try (DataInputStream in = new DataInputStream(socket.getInputStream());
-                    DataOutputStream out = new DataOutputStream(socket.getOutputStream())) {
+            while (running) {
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                socket.receive(packet);
 
-                while (true) {
-                    // Protocol:
-                    // REGISTER <userId>
-                    // FRAME <targetUserId> <length> <data>
+                // Process in a separate thread or directly?
+                // UDP is fast, let's try processing directly first to avoid thread overhead for
+                // every packet.
 
-                    int type = in.readInt(); // 1=REGISTER, 2=FRAME
+                try {
+                    DataInputStream in = new DataInputStream(
+                            new ByteArrayInputStream(packet.getData(), 0, packet.getLength()));
+                    int type = in.readInt();
+                    int senderId = in.readInt();
 
                     if (type == 1) { // REGISTER
-                        userId = in.readInt();
-                        clients.put(userId, socket);
-                        System.out.println("Video Client Registered: " + userId);
-                    } else if (type == 2) { // FRAME
+                        InetSocketAddress address = (InetSocketAddress) packet.getSocketAddress();
+                        clients.put(senderId, address);
+                        System.out.println("UDP Client Registered: " + senderId + " at " + address);
+                    } else if (type == 2 || type == 3) { // FRAME (2) or AUDIO (3)
                         int targetId = in.readInt();
-                        int length = in.readInt();
-                        byte[] data = new byte[length];
-                        in.readFully(data);
+                        // The rest is data. We forward the WHOLE packet to the target.
 
-                        // Relay to target
-                        Socket targetSocket = clients.get(targetId);
-                        if (targetSocket != null && !targetSocket.isClosed()) {
-                            try {
-                                synchronized (targetSocket) {
-                                    DataOutputStream targetOut = new DataOutputStream(targetSocket.getOutputStream());
-                                    targetOut.writeInt(2); // FRAME
-                                    targetOut.writeInt(userId); // From User ID
-                                    targetOut.writeInt(length);
-                                    targetOut.write(data);
-                                    targetOut.flush();
-                                }
-                            } catch (IOException e) {
-                                System.out.println("Failed to relay frame to " + targetId);
-                                clients.remove(targetId);
-                            }
+                        InetSocketAddress targetAddress = clients.get(targetId);
+                        if (targetAddress != null) {
+                            DatagramPacket forwardPacket = new DatagramPacket(
+                                    packet.getData(),
+                                    packet.getLength(),
+                                    targetAddress.getAddress(),
+                                    targetAddress.getPort());
+                            socket.send(forwardPacket);
                         }
                     }
-                }
-            } catch (IOException e) {
-                if (userId != -1) {
-                    clients.remove(userId);
-                    System.out.println("Video Client Disconnected: " + userId);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (socket != null && !socket.isClosed()) {
+                socket.close();
+            }
+        }
+    }
+
+    public void stop() {
+        running = false;
+        if (socket != null) {
+            socket.close();
         }
     }
 }

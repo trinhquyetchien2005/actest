@@ -9,8 +9,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.stream.Collectors;
 
+import com.actest.admin.config.Config;
+
 public class DatabaseConnection {
-    private static final String URL = "jdbc:sqlite:actest_admin.db";
+    private static final String URL = Config.get("DB_URL", "jdbc:sqlite:actest_admin.db");
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL);

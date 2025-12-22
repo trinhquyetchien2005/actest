@@ -3,6 +3,7 @@ com/actest/admin/offline/controller/DashboardController.class
 com/actest/admin/offline/controller/DashboardController$3.class
 com/actest/admin/util/TestConnection.class
 com/actest/admin/repository/ExamRepository.class
+com/actest/admin/config/Config.class
 com/actest/admin/repository/ResultRepository.class
 com/actest/admin/util/HttpClientUtil.class
 com/actest/admin/network/Server.class

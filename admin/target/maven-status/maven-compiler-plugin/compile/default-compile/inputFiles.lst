@@ -5,6 +5,7 @@
 /home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/module-info.java
 /home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/com/actest/admin/service/AuthService.java
 /home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/com/actest/admin/network/ClientHandler.java
+/home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/com/actest/admin/config/Config.java
 /home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/com/actest/admin/util/ViewManager.java
 /home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/com/actest/admin/offline/controller/DashboardController.java
 /home/trinhquyetchien/Projects/main_project/ACTEST/admin/src/main/java/com/actest/admin/controller/ExamDetailController.java

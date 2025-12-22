@@ -9,10 +9,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
+import com.actest.admin.config.Config;
+
 public class HttpClientUtil {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String BASE_URL = "http://localhost:8080/api";
+    private static final String BASE_URL = "http://" + Config.get("SERVER_HOST", "127.0.0.1") + ":"
+            + Config.get("SERVER_PORT", "8080") + "/api";
 
     public static HttpResponse<String> post(String endpoint, Map<String, Object> data)
             throws IOException, InterruptedException {
