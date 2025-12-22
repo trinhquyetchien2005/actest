@@ -51,6 +51,11 @@ public class ChatController {
     public void initialize() {
         refreshAll();
 
+        // Scroll to bottom whenever message container height changes (new messages)
+        messageContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
+            messageScrollPane.setVvalue(1.0);
+        });
+
         // Start polling for messages and requests
         poller = Executors.newSingleThreadScheduledExecutor();
         poller.scheduleAtFixedRate(() -> {
@@ -130,6 +135,7 @@ public class ChatController {
 
         cell.setOnMouseClicked(e -> {
             selectedUser = friend;
+            cachedMessages.clear(); // Reset cache
             chatWithLabel.setText("Chat with " + friend.get("name"));
             loadMessages();
         });
@@ -246,6 +252,8 @@ public class ChatController {
         }
     }
 
+    private List<Map<String, Object>> cachedMessages = new java.util.ArrayList<>();
+
     private void loadMessages() {
         if (selectedUser == null)
             return;
@@ -255,6 +263,12 @@ public class ChatController {
             int otherUserId = (int) selectedUser.get("id");
 
             List<Map<String, Object>> messages = chatService.getMessages(currentUserId, otherUserId);
+
+            // Only rebuild if messages have changed
+            if (messages.equals(cachedMessages)) {
+                return;
+            }
+            cachedMessages = new java.util.ArrayList<>(messages);
 
             messageContainer.getChildren().clear();
 
@@ -312,9 +326,7 @@ public class ChatController {
                 messageContainer.getChildren().add(bubble);
             }
 
-            // Scroll to bottom
-            messageScrollPane.layout();
-            messageScrollPane.setVvalue(1.0);
+            // Scroll handled by heightProperty listener in initialize()
 
             // Check for Incoming Call
             if (!messages.isEmpty()) {
