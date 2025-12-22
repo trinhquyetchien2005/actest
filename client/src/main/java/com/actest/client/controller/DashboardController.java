@@ -60,17 +60,24 @@ public class DashboardController {
                         }
                     }
                 } else if (message.startsWith("RESULT:")) {
-                    double score = Double.parseDouble(message.substring(7));
-                    // TODO: Save result to local DB if needed, or just rely on server
-                    // For now, we can just show an alert or update UI
-                    javafx.application.Platform.runLater(() -> {
-                        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
-                                javafx.scene.control.Alert.AlertType.INFORMATION);
-                        alert.setTitle("Exam Result");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Your score: " + score);
-                        alert.showAndWait();
-                    });
+                    String resultJson = message.substring(7);
+                    try {
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        com.actest.client.model.Result result = mapper.readValue(resultJson,
+                                com.actest.client.model.Result.class);
+
+                        javafx.application.Platform.runLater(() -> {
+                            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(
+                                    javafx.scene.control.Alert.AlertType.INFORMATION);
+                            alert.setTitle("Exam Result");
+                            alert.setHeaderText("Exam Completed");
+                            alert.setContentText("You have already completed this exam.\n\nScore: "
+                                    + String.format("%.2f", result.getScore()) + "/10.0");
+                            alert.showAndWait();
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 } else if (message.equals("STOP_EXAM")) {
                     javafx.application.Platform.runLater(() -> examContainer.getChildren().clear());
                 } else if (message.equals("REMOVED")) {

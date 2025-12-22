@@ -14,14 +14,22 @@ public class Server {
     private boolean running;
     private final List<ClientHandler> clients = new ArrayList<>();
     private final ExecutorService pool = Executors.newCachedThreadPool();
-    private com.actest.admin.model.Exam currentExam;
+    private final java.util.Map<Integer, com.actest.admin.model.Exam> activeExams = new java.util.concurrent.ConcurrentHashMap<>();
 
-    public void setCurrentExam(com.actest.admin.model.Exam exam) {
-        this.currentExam = exam;
+    public void addActiveExam(com.actest.admin.model.Exam exam) {
+        activeExams.put(exam.getId(), exam);
     }
 
-    public com.actest.admin.model.Exam getCurrentExam() {
-        return currentExam;
+    public void removeActiveExam(int examId) {
+        activeExams.remove(examId);
+    }
+
+    public java.util.List<com.actest.admin.model.Exam> getActiveExams() {
+        return new ArrayList<>(activeExams.values());
+    }
+
+    public com.actest.admin.model.Exam getActiveExam(int examId) {
+        return activeExams.get(examId);
     }
 
     public List<ClientHandler> getClients() {

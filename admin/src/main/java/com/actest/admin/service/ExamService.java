@@ -103,6 +103,10 @@ public class ExamService {
         return examRepository.getResultsByExamId(examId);
     }
 
+    public com.actest.admin.model.Result getResult(String studentName, int examId) {
+        return examRepository.getResult(studentName, examId);
+    }
+
     public List<Exam> getServerExams() {
         try {
             java.net.http.HttpResponse<String> response = com.actest.admin.util.HttpClientUtil.get("/exams");

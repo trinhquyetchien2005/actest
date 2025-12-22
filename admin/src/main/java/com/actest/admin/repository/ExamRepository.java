@@ -271,6 +271,28 @@ public class ExamRepository {
         return results;
     }
 
+    public com.actest.admin.model.Result getResult(String studentName, int examId) {
+        String sql = "SELECT * FROM results WHERE student_name = ? AND exam_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, studentName);
+            pstmt.setInt(2, examId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return new com.actest.admin.model.Result(
+                            rs.getInt("id"),
+                            rs.getString("student_name"),
+                            rs.getInt("focus_lost_count"),
+                            rs.getDouble("score"),
+                            rs.getInt("exam_id"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void deleteExam(int examId) {
         String sqlDeleteQ = "DELETE FROM questions WHERE exam_id = ?";
         String sqlDeleteExam = "DELETE FROM exams WHERE id = ?";

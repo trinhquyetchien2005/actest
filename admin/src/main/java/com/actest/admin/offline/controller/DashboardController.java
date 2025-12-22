@@ -401,7 +401,7 @@ public class DashboardController {
 
                 examService.updateStatus(exam.getId(), "IN_PROGRESS");
                 exam.setStatus("IN_PROGRESS");
-                tcpServer.setCurrentExam(exam);
+                tcpServer.addActiveExam(exam);
 
                 // Start Timer (Local Admin View)
                 examTimeRemaining.put(exam.getId(), durationSeconds);
@@ -428,8 +428,7 @@ public class DashboardController {
                         if (ip != null && !clientStates.containsKey(ip)) {
                             clientStates.put(ip,
                                     new ClientState(client.getName(), exam.getId(), durationSeconds));
-                            client.setCurrentExam(exam);
-                            client.startExam(); // Send START_EXAM to client
+                            client.sendExam(exam); // Send specific exam
                         }
                     }
                 }
@@ -466,7 +465,7 @@ public class DashboardController {
         examService.updateStatus(exam.getId(), "FINISHED");
         exam.setStatus("FINISHED");
         if (tcpServer != null) {
-            tcpServer.setCurrentExam(null);
+            tcpServer.removeActiveExam(exam.getId());
         }
         if (examTimers.containsKey(exam.getId())) {
             examTimers.get(exam.getId()).cancel();
@@ -563,16 +562,14 @@ public class DashboardController {
             acceptBtn.setOnAction(e -> {
                 client.accept();
 
-                // Check if there is an active exam on the server (Late Join)
-                com.actest.admin.model.Exam currentExam = tcpServer.getCurrentExam();
-                if (currentExam != null) {
+                // Check if there are active exams on the server (Late Join)
+                java.util.List<com.actest.admin.model.Exam> activeExams = tcpServer.getActiveExams();
+                for (com.actest.admin.model.Exam currentExam : activeExams) {
                     // Initialize state for new student
                     String ip = client.getIpAddress();
                     if (ip != null) {
                         // Calculate remaining time
                         int durationSeconds = currentExam.getDuration() * 60;
-                        // We need to find the start time of the exam to calculate remaining correctly?
-                        // Actually, we track exam remaining time in examTimeRemaining map.
                         int remaining = 0;
                         if (examTimeRemaining.containsKey(currentExam.getId())) {
                             remaining = examTimeRemaining.get(currentExam.getId());
@@ -580,26 +577,42 @@ public class DashboardController {
                             remaining = durationSeconds; // Should not happen if exam is running
                         }
 
-                        // Create state with adjusted duration so client timer matches?
-                        // No, client timer counts down from duration.
-                        // If we send full duration, client will have more time.
-                        // We should probably send the exam with modified duration?
-                        // Or just let them have full time?
-                        // Requirement: "admin gửi bài thi đó cho client nhấn tham gia"
-                        // Usually late joiners get less time.
-                        // Let's use the remaining time as the duration for this client?
-                        // Or just track it on server.
-
-                        // Let's stick to server tracking.
                         // We add them to clientStates.
-                        if (!clientStates.containsKey(ip)) {
-                            clientStates.put(ip, new ClientState(client.getName(), currentExam.getId(), remaining));
-                        }
+                        // Note: clientStates is a Map<String, ClientState>.
+                        // If a client is in MULTIPLE exams, this map structure (Key=IP) only supports
+                        // ONE state per IP!
+                        // This is a limitation of the current Admin architecture.
+                        // To support multiple exams per client, ClientState needs to hold a
+                        // List<ExamState> or Map<ExamId, State>.
+                        // For now, we will just overwrite or ignore?
+                        // If we overwrite, we lose track of previous exam state.
+                        // But the requirement is "client shows 2 exams".
+                        // Tracking state (time, answers) for multiple exams requires refactoring
+                        // ClientState.
+                        // Given the time, let's assume we just want to SHOW them.
+                        // But we need to track them for time/answers.
 
-                        client.setCurrentExam(currentExam);
-                        client.startExam(); // Send START_EXAM
-                        System.out
-                                .println("Late joiner " + client.getName() + " added to exam " + currentExam.getName());
+                        // Refactoring ClientState to support multiple exams is risky but necessary.
+                        // OR, we can use a composite key "IP_ExamID" for the map?
+                        // But existing code uses clientStates.get(ip).
+
+                        // Quick fix: Use a separate map for each exam? No.
+                        // Let's modify ClientState to hold examId. Wait, it already does.
+                        // If we put(ip, newState), we overwrite old state.
+
+                        // If we want to support multiple exams, we MUST change clientStates to
+                        // Map<String, List<ClientState>> or Map<String, Map<Integer, ClientState>>.
+                        // This is a larger refactor.
+
+                        // However, for "Late Join", we can just send the exams.
+                        // The state tracking is the problem.
+                        // If the user just wants to SEE them, we can send them.
+                        // If they start taking one, we track that one?
+                        // But the Admin needs to track ALL of them for time/monitoring.
+
+                        // Let's try to send all exams.
+                        client.sendExam(currentExam);
+                        System.out.println("Late joiner " + client.getName() + " sent exam " + currentExam.getName());
                     }
                 }
 

@@ -13,7 +13,6 @@ public class ClientHandler implements Runnable {
     private PrintWriter out;
     private String name;
     private final java.util.Map<Integer, String> answers = new java.util.HashMap<>();
-    private int currentExamId = -1;
 
     public ClientHandler(Socket socket, Server server) {
         this.socket = socket;
@@ -185,10 +184,13 @@ public class ClientHandler implements Runnable {
                 int questionId = Integer.parseInt(parts[2]);
                 String answer = parts[3];
 
-                if (examId == currentExamId) {
+                // Check if this exam is active on the server
+                if (server.getActiveExam(examId) != null) {
                     answers.put(questionId, answer);
                     System.out.println("Stored answer for client " + name + ": Q" + questionId + "=" + answer);
                     // No auto-advance
+                } else {
+                    System.out.println("Ignored answer for inactive exam " + examId + " from " + name);
                 }
             } catch (NumberFormatException e) {
                 e.printStackTrace();
@@ -216,29 +218,45 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private int currentQuestionIndex = 0;
-    private com.actest.admin.model.Exam currentExam;
+    public void startExam() {
+        // Send ALL active exams
+        java.util.List<com.actest.admin.model.Exam> activeExams = server.getActiveExams();
+        if (activeExams.isEmpty()) {
+            return;
+        }
 
-    public void setCurrentExam(com.actest.admin.model.Exam exam) {
-        this.currentExam = exam;
-        this.currentQuestionIndex = 0;
-        this.currentExamId = exam.getId();
+        for (com.actest.admin.model.Exam exam : activeExams) {
+            sendExam(exam);
+        }
     }
 
-    public void startExam() {
-        if (currentExam != null) {
+    public void sendExam(com.actest.admin.model.Exam exam) {
+        if (exam != null) {
             try {
+                // Check if client has already submitted this exam
+                com.actest.admin.service.ExamService examService = new com.actest.admin.service.ExamService();
+                com.actest.admin.model.Result existingResult = examService.getResult(name, exam.getId());
+
+                if (existingResult != null) {
+                    System.out.println("Client " + name + " has already submitted exam " + exam.getId());
+                    // Send result instead of exam
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    String resultJson = mapper.writeValueAsString(existingResult);
+                    sendMessage("RESULT:" + resultJson);
+                    return;
+                }
+
                 // Ensure questions are loaded
-                if (currentExam.getQuestions() == null || currentExam.getQuestions().isEmpty()) {
+                if (exam.getQuestions() == null || exam.getQuestions().isEmpty()) {
                     // This might need service access, but usually controller sets it.
                     // Assuming controller set it before calling setCurrentExam.
                 }
 
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-                String examJson = mapper.writeValueAsString(currentExam);
+                String examJson = mapper.writeValueAsString(exam);
                 String base64Exam = java.util.Base64.getEncoder().encodeToString(examJson.getBytes());
                 sendMessage("START_EXAM:" + base64Exam);
-                System.out.println("Sent Full Exam to " + name);
+                System.out.println("Sent Exam " + exam.getId() + " to " + name);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -248,26 +266,6 @@ public class ClientHandler implements Runnable {
     // Reverted: No longer sending questions one by one
     public void sendNextQuestion() {
         // No-op for Azota style (Full exam loaded at start)
-    }
-
-    public int getCurrentQuestionIndex() {
-        return currentQuestionIndex;
-    }
-
-    public void setCurrentQuestionIndex(int index) {
-        this.currentQuestionIndex = index;
-    }
-
-    public java.util.Map<Integer, String> getAnswers() {
-        return answers;
-    }
-
-    public void setCurrentExamId(int examId) {
-        this.currentExamId = examId;
-    }
-
-    public int getCurrentExamId() {
-        return currentExamId;
     }
 
     public void setAnswers(java.util.Map<Integer, String> savedAnswers) {
