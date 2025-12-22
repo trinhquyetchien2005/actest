@@ -134,7 +134,8 @@ public class DashboardController {
             String[] parts = message.split(":", 3);
             if (parts.length == 3) {
                 int examId = Integer.parseInt(parts[1]);
-                String resultJson = parts[2];
+                String base64Result = parts[2];
+                String resultJson = new String(java.util.Base64.getDecoder().decode(base64Result));
                 System.out.println("Received result from " + client.getName() + " for exam " + examId);
                 handleExamSubmission(client, examId, resultJson);
             }
@@ -716,8 +717,10 @@ public class DashboardController {
                 Exam tempExam = new Exam(exam.getId(), exam.getName(), (int) (remaining / 60), exam.getCreatorId());
                 tempExam.setQuestions(exam.getQuestions());
                 String tempExamJson = mapper.writeValueAsString(tempExam);
+                String base64Exam = java.util.Base64.getEncoder().encodeToString(tempExamJson.getBytes());
+                String base64Answers = java.util.Base64.getEncoder().encodeToString(answersJson.getBytes());
 
-                client.sendMessage("RESUME_EXAM:" + tempExamJson + "|||" + answersJson);
+                client.sendMessage("RESUME_EXAM:" + base64Exam + "|||" + base64Answers);
                 System.out.println("Resumed exam for " + client.getName());
             }
         } catch (Exception e) {

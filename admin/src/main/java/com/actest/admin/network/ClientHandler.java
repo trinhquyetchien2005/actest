@@ -233,7 +233,8 @@ public class ClientHandler implements Runnable {
 
                 com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                 String examJson = mapper.writeValueAsString(currentExam);
-                sendMessage("START_EXAM:" + examJson);
+                String base64Exam = java.util.Base64.getEncoder().encodeToString(examJson.getBytes());
+                sendMessage("START_EXAM:" + base64Exam);
                 System.out.println("Sent Full Exam to " + name);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -19,30 +19,26 @@ public class DashboardController {
         if (client != null) {
             client.setListener(message -> {
                 if (message.startsWith("START_EXAM:")) {
-                    String examJson = message.substring(11);
+                    String base64Exam = message.substring(11);
+                    String examJson = new String(java.util.Base64.getDecoder().decode(base64Exam));
                     try {
                         com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
                         com.actest.client.model.Exam exam = mapper.readValue(examJson,
                                 com.actest.client.model.Exam.class);
 
-                        // examService.saveExam(exam); // Removed local save
-                        // examService.saveExam(exam); // Removed local save
                         javafx.application.Platform.runLater(() -> addExamCard(exam));
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
 
                 } else if (message.startsWith("RESUME_EXAM:")) {
-                    // Format: RESUME_EXAM:examJson:answersJson
-                    // We need to parse this.
-                    // For simplicity, let's assume the message is just the exam first, then we
-                    // might need another message for answers or bundle them.
-                    // Actually, let's parse the whole string.
                     String content = message.substring(12);
                     int splitIndex = content.indexOf("|||"); // Separator
                     if (splitIndex != -1) {
-                        String examJson = content.substring(0, splitIndex);
-                        String answersJson = content.substring(splitIndex + 3);
+                        String base64Exam = content.substring(0, splitIndex);
+                        String base64Answers = content.substring(splitIndex + 3);
+                        String examJson = new String(java.util.Base64.getDecoder().decode(base64Exam));
+                        String answersJson = new String(java.util.Base64.getDecoder().decode(base64Answers));
 
                         try {
                             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();

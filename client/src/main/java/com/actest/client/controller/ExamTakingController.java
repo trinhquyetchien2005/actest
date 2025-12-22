@@ -131,14 +131,14 @@ public class ExamTakingController {
                     // Format: RESULT:score:correct:wrong:allowReview
                     String[] parts = message.split(":");
                     if (parts.length >= 5) {
-                        double score = Double.parseDouble(parts[1]);
+                        double score = Double.parseDouble(parts[1].replace(",", "."));
                         int correct = Integer.parseInt(parts[2]);
                         int wrong = Integer.parseInt(parts[3]);
                         boolean allowReview = Boolean.parseBoolean(parts[4]);
                         Platform.runLater(() -> showResult(score, correct, wrong, allowReview));
                     } else if (parts.length == 2) {
                         // Legacy format: RESULT:score
-                        double score = Double.parseDouble(parts[1]);
+                        double score = Double.parseDouble(parts[1].replace(",", "."));
                         Platform.runLater(() -> showResult(score, 0, 0, false));
                     }
                 } else if (message.startsWith("ERROR:")) {
@@ -338,10 +338,11 @@ public class ExamTakingController {
         try {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             String answersJson = mapper.writeValueAsString(answers);
+            String base64Answers = java.util.Base64.getEncoder().encodeToString(answersJson.getBytes());
 
             com.actest.client.network.Client client = com.actest.client.service.AuthService.getTcpClient();
             if (client != null) {
-                client.sendMessage("SUBMIT_EXAM:" + currentExam.getId() + ":" + answersJson);
+                client.sendMessage("SUBMIT_EXAM:" + currentExam.getId() + ":" + base64Answers);
             }
 
             // Exit Full Screen
