@@ -44,7 +44,6 @@
                     <VBox spacing="15" style="-fx-padding: 20;" alignment="CENTER">
                         <Label text="Start Local Server" styleClass="sub-header-label"/>
                         <TextField fx:id="serverNameField" promptText="Server Name (for LAN Discovery)"/>
-                        <Button text="Check Availability" onAction="#handleCheckAvailability" styleClass="button-secondary" maxWidth="Infinity"/>
                         <Label fx:id="availabilityLabel" text="" style="-fx-font-size: 12px;"/>
                         <Button fx:id="startServerBtn" text="Start Server" onAction="#handleStartServer" maxWidth="Infinity" disable="true"/>
                     </VBox>

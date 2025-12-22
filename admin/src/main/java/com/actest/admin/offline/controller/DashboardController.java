@@ -400,6 +400,7 @@ public class DashboardController {
 
                 examService.updateStatus(exam.getId(), "IN_PROGRESS");
                 exam.setStatus("IN_PROGRESS");
+                tcpServer.setCurrentExam(exam);
 
                 // Start Timer (Local Admin View)
                 examTimeRemaining.put(exam.getId(), durationSeconds);
@@ -463,6 +464,9 @@ public class DashboardController {
 
         examService.updateStatus(exam.getId(), "FINISHED");
         exam.setStatus("FINISHED");
+        if (tcpServer != null) {
+            tcpServer.setCurrentExam(null);
+        }
         if (examTimers.containsKey(exam.getId())) {
             examTimers.get(exam.getId()).cancel();
             examTimers.remove(exam.getId());
@@ -557,10 +561,54 @@ public class DashboardController {
             acceptBtn.setStyle("-fx-font-size: 12px; -fx-padding: 8 16;");
             acceptBtn.setOnAction(e -> {
                 client.accept();
-                // Check for resume using IP
+
+                // Check if there is an active exam on the server (Late Join)
+                com.actest.admin.model.Exam currentExam = tcpServer.getCurrentExam();
+                if (currentExam != null) {
+                    // Initialize state for new student
+                    String ip = client.getIpAddress();
+                    if (ip != null) {
+                        // Calculate remaining time
+                        int durationSeconds = currentExam.getDuration() * 60;
+                        // We need to find the start time of the exam to calculate remaining correctly?
+                        // Actually, we track exam remaining time in examTimeRemaining map.
+                        int remaining = 0;
+                        if (examTimeRemaining.containsKey(currentExam.getId())) {
+                            remaining = examTimeRemaining.get(currentExam.getId());
+                        } else {
+                            remaining = durationSeconds; // Should not happen if exam is running
+                        }
+
+                        // Create state with adjusted duration so client timer matches?
+                        // No, client timer counts down from duration.
+                        // If we send full duration, client will have more time.
+                        // We should probably send the exam with modified duration?
+                        // Or just let them have full time?
+                        // Requirement: "admin gửi bài thi đó cho client nhấn tham gia"
+                        // Usually late joiners get less time.
+                        // Let's use the remaining time as the duration for this client?
+                        // Or just track it on server.
+
+                        // Let's stick to server tracking.
+                        // We add them to clientStates.
+                        if (!clientStates.containsKey(ip)) {
+                            clientStates.put(ip, new ClientState(client.getName(), currentExam.getId(), remaining));
+                        }
+
+                        client.setCurrentExam(currentExam);
+                        client.startExam(); // Send START_EXAM
+                        System.out
+                                .println("Late joiner " + client.getName() + " added to exam " + currentExam.getName());
+                    }
+                }
+
+                // Check for resume using IP (only if not already handled as late join new
+                // state)
                 String ip = client.getIpAddress();
                 if (ip != null && clientStates.containsKey(ip)) {
                     ClientState state = clientStates.get(ip);
+                    // If we just added them as late joiner, isDisconnected is false.
+                    // If they are resuming, isDisconnected is true.
                     if (state.isDisconnected) {
                         state.isDisconnected = false;
                         // Offer resume

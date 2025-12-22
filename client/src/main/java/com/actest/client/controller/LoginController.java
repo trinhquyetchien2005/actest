@@ -17,7 +17,7 @@ public class LoginController {
     private ListView<String> serverListView;
 
     private final AuthService authService = new AuthService();
-    private final DiscoveryClient discoveryClient = new DiscoveryClient(); // Added field
+    private final DiscoveryClient discoveryClient = new DiscoveryClient();
 
     @FXML
     public void initialize() {
@@ -43,12 +43,10 @@ public class LoginController {
     @FXML
     private void handleConnect() {
         String name = nameField.getText();
-        String selectedServer = (String) serverListView.getSelectionModel().getSelectedItem(); // Un-commented and
-                                                                                               // modified
+        String selectedServer = serverListView.getSelectionModel().getSelectedItem();
 
         if (name.isEmpty()) {
-            // Show alert
-            System.out.println("Please enter name");
+            showAlert("Please enter name");
             return;
         }
 
@@ -57,7 +55,7 @@ public class LoginController {
             String ip = selectedServer.substring(selectedServer.lastIndexOf("(") + 1, selectedServer.lastIndexOf(")"));
             System.out.println("Connecting to " + ip);
 
-            if (authService.loginOffline(ip, name)) { // Modified to use parsed IP
+            if (authService.loginOffline(ip, name)) {
                 ViewManager.getInstance().switchView("/com/actest/client/view/waiting.fxml", "ACTEST Client - Waiting");
 
                 AuthService.getTcpClient().setListener(message -> {
@@ -68,8 +66,7 @@ public class LoginController {
                         });
                     } else if ("REJECTED".equals(message)) {
                         javafx.application.Platform.runLater(() -> {
-                            // Handle rejection (e.g., show alert and go back to login)
-                            System.out.println("Connection rejected by admin.");
+                            showAlert("Connection rejected by admin.");
                             ViewManager.getInstance().switchView("/com/actest/client/view/login.fxml",
                                     "ACTEST Client - Login");
                         });
@@ -77,7 +74,15 @@ public class LoginController {
                 });
             }
         } else {
-            System.out.println("Please select a server"); // Added else block
+            showAlert("Please select a server");
         }
+    }
+
+    private void showAlert(String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setTitle("Warning");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

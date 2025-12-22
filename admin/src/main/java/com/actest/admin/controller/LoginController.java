@@ -181,10 +181,24 @@ public class LoginController {
     }
 
     @FXML
-    private void handleCheckAvailability(ActionEvent event) {
-        String serverName = serverNameField.getText();
-        if (serverName.isEmpty()) {
-            showAlert("Error", "Please enter a server name.");
+    public void initialize() {
+        if (serverNameField != null) {
+            serverNameField.textProperty().addListener((observable, oldValue, newValue) -> {
+                checkAvailability(newValue);
+            });
+        }
+    }
+
+    private javafx.animation.PauseTransition checkDelay;
+
+    private void checkAvailability(String serverName) {
+        if (checkDelay != null) {
+            checkDelay.stop();
+        }
+
+        if (serverName == null || serverName.trim().isEmpty()) {
+            availabilityLabel.setText("");
+            startServerBtn.setDisable(true);
             return;
         }
 
@@ -192,6 +206,12 @@ public class LoginController {
         availabilityLabel.setStyle("-fx-text-fill: black;");
         startServerBtn.setDisable(true);
 
+        checkDelay = new javafx.animation.PauseTransition(javafx.util.Duration.millis(500));
+        checkDelay.setOnFinished(e -> performCheck(serverName));
+        checkDelay.play();
+    }
+
+    private void performCheck(String serverName) {
         new Thread(() -> {
             List<String> servers = discoveryClient.discoverServers();
             boolean exists = servers.contains(serverName);
@@ -200,11 +220,11 @@ public class LoginController {
                 if (exists) {
                     availabilityLabel.setText("Name '" + serverName + "' is already taken.");
                     availabilityLabel.setStyle("-fx-text-fill: red;");
-                    startServerBtn.setDisable(true);
+                    startServerBtn.setDisable(true); // Keep disabled if taken
                 } else {
                     availabilityLabel.setText("Name '" + serverName + "' is available.");
                     availabilityLabel.setStyle("-fx-text-fill: green;");
-                    startServerBtn.setDisable(false);
+                    startServerBtn.setDisable(false); // Enable if available
                 }
             });
         }).start();

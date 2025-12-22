@@ -14,6 +14,15 @@ public class Server {
     private boolean running;
     private final List<ClientHandler> clients = new ArrayList<>();
     private final ExecutorService pool = Executors.newCachedThreadPool();
+    private com.actest.admin.model.Exam currentExam;
+
+    public void setCurrentExam(com.actest.admin.model.Exam exam) {
+        this.currentExam = exam;
+    }
+
+    public com.actest.admin.model.Exam getCurrentExam() {
+        return currentExam;
+    }
 
     public List<ClientHandler> getClients() {
         return new ArrayList<>(clients);

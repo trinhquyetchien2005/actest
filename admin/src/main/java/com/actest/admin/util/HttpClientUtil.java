@@ -14,7 +14,7 @@ import com.actest.admin.config.Config;
 public class HttpClientUtil {
     private static final HttpClient client = HttpClient.newHttpClient();
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String BASE_URL = "http://" + Config.get("SERVER_HOST", "127.0.0.1") + ":"
+    private static final String BASE_URL = "http://" + Config.get("SERVER_HOST") + ":"
             + Config.get("SERVER_PORT", "8080") + "/api";
 
     public static HttpResponse<String> post(String endpoint, Map<String, Object> data)

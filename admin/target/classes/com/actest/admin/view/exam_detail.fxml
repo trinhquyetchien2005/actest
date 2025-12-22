@@ -14,7 +14,7 @@
     <VBox alignment="CENTER" styleClass="root" spacing="20" style="-fx-padding: 20;">
         <VBox spacing="20" styleClass="card" maxWidth="800" VBox.vgrow="ALWAYS">
             <Label text="Exam Details" styleClass="header-label"/>
-            
+
             <HBox spacing="20">
                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                     <Label text="Exam Name" styleClass="sub-header-label"/>
@@ -27,12 +27,12 @@
             </HBox>
 
             <javafx.scene.control.CheckBox fx:id="allowReviewCheckbox" text="Allow Review Answers after submission"/>
-            
+
             <Label text="Questions" styleClass="sub-header-label"/>
             <javafx.scene.control.ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
                 <VBox fx:id="questionContainer" spacing="10" style="-fx-padding: 10;"/>
             </javafx.scene.control.ScrollPane>
-            
+
             <VBox fx:id="addQuestionBox" spacing="10" styleClass="card" style="-fx-background-color: #f0f0f0; -fx-padding: 10;">
                 <Label text="Add New Question" style="-fx-font-weight: bold;"/>
                 <TextField fx:id="newQuestionField" promptText="Question Text"/>
