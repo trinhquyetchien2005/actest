@@ -50,6 +50,9 @@ public class ClientHandler implements Runnable {
                     handleReconnect(message);
                 } else if (message.startsWith("VIOLATION:")) {
                     handleViolation(message);
+                } else if (message.equals("REQUEST_EXAM")) {
+                    System.out.println("Client " + name + " requested exam reload.");
+                    startExam(); // Resend the exam
                 } else if (message.equals("READY")) {
                     // Client is ready, but we already sent START_EXAM with full content.
                     // We can log it or maybe re-send if needed, but for now do nothing.

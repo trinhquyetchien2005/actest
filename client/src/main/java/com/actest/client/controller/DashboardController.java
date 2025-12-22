@@ -87,6 +87,16 @@ public class DashboardController {
         ViewManager.getInstance().switchView("/com/actest/client/view/login.fxml", "ACTEST Client - Login");
     }
 
+    @FXML
+    private void handleReload() {
+        com.actest.client.network.Client client = authService.getTcpClient();
+        if (client != null) {
+            client.sendMessage("REQUEST_EXAM");
+            // Clear current exams to avoid duplicates if server resends
+            examContainer.getChildren().clear();
+        }
+    }
+
     private void addExamCard(com.actest.client.model.Exam exam) {
         javafx.scene.layout.HBox card = new javafx.scene.layout.HBox(20);
         card.setStyle(

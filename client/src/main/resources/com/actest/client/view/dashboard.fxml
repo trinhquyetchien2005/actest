@@ -14,6 +14,7 @@
         <HBox alignment="CENTER_LEFT" spacing="20" style="-fx-padding: 20; -fx-background-color: white;">
             <Label text="Available Exams" styleClass="header-label"/>
             <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Reload" onAction="#handleReload" styleClass="button-secondary"/>
             <Button text="Disconnect" onAction="#handleDisconnect" styleClass="button-danger"/>
         </HBox>
     </top>
