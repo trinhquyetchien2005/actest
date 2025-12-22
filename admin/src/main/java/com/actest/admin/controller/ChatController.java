@@ -56,12 +56,22 @@ public class ChatController {
             messageScrollPane.setVvalue(1.0);
         });
 
-        // Start polling for messages and requests
+        // Connect to Chat Server
+        try {
+            int currentUserId = AuthService.getCurrentUserId();
+            chatService.connect(currentUserId);
+            chatService.setListener((senderId, content) -> {
+                Platform.runLater(() -> handleIncomingMessage(senderId, content));
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Start polling for requests only (less frequent)
         poller = Executors.newSingleThreadScheduledExecutor();
         poller.scheduleAtFixedRate(() -> {
-            pollMessages();
             Platform.runLater(this::refreshAll);
-        }, 0, 3, TimeUnit.SECONDS);
+        }, 0, 5, TimeUnit.SECONDS);
     }
 
     private void refreshAll() {
@@ -246,9 +256,56 @@ public class ChatController {
         return cell;
     }
 
-    private void pollMessages() {
-        if (selectedUser != null) {
-            Platform.runLater(this::loadMessages);
+    private void handleIncomingMessage(int senderId, String content) {
+        // Check for Video Call
+        if ("VIDEO_CALL_STARTED".equals(content)) {
+            showIncomingCallDialog(senderId);
+            return;
+        }
+
+        // If chatting with this user, append message
+        if (selectedUser != null && (int) selectedUser.get("id") == senderId) {
+            addMessageBubble(senderId, content, System.currentTimeMillis());
+        }
+    }
+
+    private void addMessageBubble(int senderId, String content, long timestamp) {
+        try {
+            int currentUserId = AuthService.getCurrentUserId();
+
+            String timeStr = "";
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("HH:mm");
+            timeStr = sdf.format(new java.util.Date(timestamp));
+
+            HBox bubble = new HBox();
+            VBox bubbleContent = new VBox(4);
+
+            Label label = new Label(content);
+            label.setWrapText(true);
+            label.setMaxWidth(350);
+
+            Label timeLabel = new Label(timeStr);
+            timeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #a0aec0;");
+
+            if (senderId == currentUserId) {
+                bubble.setAlignment(Pos.CENTER_RIGHT);
+                bubbleContent.setAlignment(Pos.BOTTOM_RIGHT);
+                bubbleContent.getStyleClass().add("message-bubble-sent");
+            } else {
+                bubble.setAlignment(Pos.CENTER_LEFT);
+                bubbleContent.setAlignment(Pos.BOTTOM_LEFT);
+                bubbleContent.getStyleClass().add("message-bubble-received");
+            }
+
+            bubbleContent.getChildren().addAll(label, timeLabel);
+            bubble.getChildren().add(bubbleContent);
+            messageContainer.getChildren().add(bubble);
+
+            // Auto scroll
+            messageScrollPane.setVvalue(1.0);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -440,7 +497,8 @@ public class ChatController {
 
             chatService.sendMessage(currentUserId, otherUserId, content);
             messageInput.clear();
-            loadMessages();
+            // Add my message immediately
+            addMessageBubble(currentUserId, content, System.currentTimeMillis());
         } catch (Exception e) {
             e.printStackTrace();
             if (e.getMessage().contains("403")) {
@@ -493,6 +551,7 @@ public class ChatController {
         if (poller != null) {
             poller.shutdown();
         }
+        chatService.disconnect();
         ViewManager.getInstance().switchView("/com/actest/admin/view/dashboard_online.fxml",
                 "ACTEST Admin - Dashboard");
     }

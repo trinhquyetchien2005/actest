@@ -43,6 +43,9 @@ public class ServerApp {
             // Start Video Call Server
             new com.actest.server.network.VideoCallServer().start();
 
+            // Start Chat Server
+            new com.actest.server.network.ChatServer().start();
+
         } catch (Exception e) {
             System.err.println("Failed to start server: " + e.getMessage());
             e.printStackTrace();

@@ -13,8 +13,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VideoCallServer implements Runnable {
     private static final int PORT = 9000;
     private static final int BUFFER_SIZE = 64000; // Max UDP size is ~65k
-
-    // Map userId -> Client Address
     private final Map<Integer, InetSocketAddress> clients = new ConcurrentHashMap<>();
     private DatagramSocket socket;
     private boolean running = false;
@@ -36,9 +34,6 @@ public class VideoCallServer implements Runnable {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
 
-                // Process in a separate thread or directly?
-                // UDP is fast, let's try processing directly first to avoid thread overhead for
-                // every packet.
 
                 try {
                     DataInputStream in = new DataInputStream(
@@ -52,8 +47,6 @@ public class VideoCallServer implements Runnable {
                         System.out.println("UDP Client Registered: " + senderId + " at " + address);
                     } else if (type == 2 || type == 3) { // FRAME (2) or AUDIO (3)
                         int targetId = in.readInt();
-                        // The rest is data. We forward the WHOLE packet to the target.
-
                         InetSocketAddress targetAddress = clients.get(targetId);
                         if (targetAddress != null) {
                             DatagramPacket forwardPacket = new DatagramPacket(

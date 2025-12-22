@@ -121,17 +121,6 @@ public class ClientHandler implements Runnable {
                 fos.write(imageBytes);
             }
             System.out.println("Violation screenshot saved: " + file.getAbsolutePath());
-
-            // Notify Dashboard to update UI (if possible, or Dashboard polls)
-            // Since ClientHandler is running in a thread, we can't directly update JavaFX
-            // UI easily without a callback.
-            // But DashboardController refreshes periodically or we can rely on manual
-            // refresh/polling.
-            // For now, DashboardController.refreshClients() is called on events, but we
-            // might need to trigger it.
-            // We can assume DashboardController polls or we add a listener mechanism later
-            // if needed.
-            // Actually, Server.onMessage calls listeners. We could forward a notification.
             server.onMessage(this, "VIOLATION_DETECTED"); // Let server know to refresh UI
 
         } catch (Exception e) {

@@ -10,6 +10,20 @@ public class ChatService {
     private static final String BASE_URL = "http://localhost:8080/api";
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private final com.actest.admin.network.ChatClient chatClient = new com.actest.admin.network.ChatClient();
+
+    public void connect(int userId) {
+        chatClient.connect(userId);
+    }
+
+    public void disconnect() {
+        chatClient.disconnect();
+    }
+
+    public void setListener(com.actest.admin.network.ChatClient.ChatListener listener) {
+        chatClient.setListener(listener);
+    }
+
     public List<Map<String, Object>> searchUsers(String query, int currentUserId) throws Exception {
         var response = HttpClientUtil
                 .get("/users/search?q=" + java.net.URLEncoder.encode(query, "UTF-8") + "&userId=" + currentUserId);
@@ -30,12 +44,11 @@ public class ChatService {
     }
 
     public void sendMessage(int senderId, int receiverId, String content) throws Exception {
-        Map<String, Object> message = new java.util.HashMap<>();
-        message.put("senderId", senderId);
-        message.put("receiverId", receiverId);
-        message.put("content", content);
+        // Use TCP for real-time
+        chatClient.sendMessage(receiverId, content);
 
-        HttpClientUtil.post("/messages", message);
+        // Note: Server will handle saving to DB when it receives the TCP message.
+        // We don't need to call HTTP POST /messages anymore for sending.
     }
 
     public boolean sendRequest(int senderId, int receiverId) throws Exception {
